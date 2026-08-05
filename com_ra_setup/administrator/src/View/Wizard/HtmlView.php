@@ -1,17 +1,39 @@
 <?php
 
+/**
+ * @version    1.0.1
+ * @author     Charlie Bigley <webmaster@bigley.me.uk>
+ * @copyright  2023 Charlie Bigley
+ * @license    GNU General Public License version 2 or later; see LICENSE.txt
+ * 05/08/26 CB Created
+ */
+
 namespace Ramblers\Component\Ra_setup\Administrator\View\Wizard;
 
-defined('_JEXEC') or die;
+\defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use \Joomla\CMS\User\CurrentUserInterface;
+use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 
-class HtmlView extends BaseHtmlView
-{
-    public function display($tpl = null)
-    {
-        $this->document->setTitle('RA Setup Wizard');
+class HtmlView extends BaseHtmlView implements CurrentUserInterface {
 
-        return parent::display($tpl);
+    protected $params;
+    protected $user;
+
+    public function display($tpl = null) {
+        $app = Factory::getApplication();
+        $this->user = $this->getCurrentUser();
+        $this->toolsHelper = new ToolsHelper;
+        $this->isSuper = $this->toolsHelper->isSuperuser();
+        $this->params = ComponentHelper::getParams('com_ra_members');
+
+        parent::display($tpl);
     }
+
 }
