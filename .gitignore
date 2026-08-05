@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+nbproject/
+
+# Composer / PHP
+/vendor/
+composer.lock
+
+# Logs
+*.log
+
+# Backup files
+*~
+*.bak
+
+# Local environment
+.env

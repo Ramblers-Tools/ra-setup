@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fields name="filter">
+        <field name="search" type="text" hint="COM_RA_SETUP_SEARCH_FILTER_SUBMIT"
+               label="COM_USERS_FILTER_SEARCH_DESC"
+               class="js-stools-search-string" />
+
+        
+
+    </fields>
+    <fields name="list">
+
+        <field name="fullordering"
+               type="list"
+               label="COM_RA_SETUP_LIST_FULL_ORDERING"
+               description="COM_RA_SETUP_LIST_FULL_ORDERING_DESC"
+               onchange="this.form.submit();"
+               default="a.id DESC"
+        >
+            <option value="">JGLOBAL_SORT_BY</option>
+            <option value="a.id ASC">COM_RA_SETUP_ID_ASC</option><option value="a.id DESC">COM_RA_SETUP_ID_DESC</option><option value="a.version ASC">COM_RA_SETUP_VERSION_ASC</option><option value="a.version DESC">COM_RA_SETUP_VERSION_DESC</option><option value="a.component_name ASC">COM_RA_SETUP_COMPONENT_NAME_ASC</option><option value="a.component_name DESC">COM_RA_SETUP_COMPONENT_NAME_DESC</option><option value="a.component_type_id ASC">COM_RA_SETUP_COMPONENT_TYPE_ID_ASC</option><option value="a.component_type_id DESC">COM_RA_SETUP_COMPONENT_TYPE_ID_DESC</option><option value="a.build_date ASC">COM_RA_SETUP_BUILD_DATE_ASC</option><option value="a.build_date DESC">COM_RA_SETUP_BUILD_DATE_DESC</option>
+
+        </field>
+
+       <field name="limit"
+               type="limitbox"
+               label="COM_RA_SETUP_LIST_LIMIT"
+               description="COM_RA_SETUP_LIST_LIMIT_DESC"
+               class="input-mini"
+               default="25"
+               onchange="this.form.submit();"
+        />
+
+    </fields>
+</form>
