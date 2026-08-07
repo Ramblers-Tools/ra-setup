@@ -1,35 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<form>
-    <fields name="filter">
-        <field name="search" type="text" hint="COM_RA_SETUP_SEARCH_FILTER_SUBMIT"
-               label="COM_USERS_FILTER_SEARCH_DESC"
-               class="js-stools-search-string" />
-
-        
-
-    </fields>
-    <fields name="list">
-
-        <field name="fullordering"
-               type="list"
-               label="COM_RA_SETUP_LIST_FULL_ORDERING"
-               description="COM_RA_SETUP_LIST_FULL_ORDERING_DESC"
-               onchange="this.form.submit();"
-               default="a.id DESC"
+<form addfieldprefix="Ramblers\Component\Ra_tools\Administrator\Field">
+    <fieldset>
+    <field
+        name="area_group"
+        type="radio"
+        label="Is the site for an Area or a Group?"
+        description=""
+        classs="btn-group btn-group-yesno"
+        default="G"
         >
-            <option value="">JGLOBAL_SORT_BY</option>
-            <option value="a.id ASC">COM_RA_SETUP_ID_ASC</option><option value="a.id DESC">COM_RA_SETUP_ID_DESC</option><option value="a.version ASC">COM_RA_SETUP_VERSION_ASC</option><option value="a.version DESC">COM_RA_SETUP_VERSION_DESC</option><option value="a.component_name ASC">COM_RA_SETUP_COMPONENT_NAME_ASC</option><option value="a.component_name DESC">COM_RA_SETUP_COMPONENT_NAME_DESC</option><option value="a.component_type_id ASC">COM_RA_SETUP_COMPONENT_TYPE_ID_ASC</option><option value="a.component_type_id DESC">COM_RA_SETUP_COMPONENT_TYPE_ID_DESC</option><option value="a.build_date ASC">COM_RA_SETUP_BUILD_DATE_ASC</option><option value="a.build_date DESC">COM_RA_SETUP_BUILD_DATE_DESC</option>
-
-        </field>
-
-       <field name="limit"
-               type="limitbox"
-               label="COM_RA_SETUP_LIST_LIMIT"
-               description="COM_RA_SETUP_LIST_LIMIT_DESC"
-               class="input-mini"
-               default="25"
-               onchange="this.form.submit();"
-        />
-
+            <option value="G">Group</option>
+            <option value="A">Area</option>
+    </field>
+    <field
+        name="group_code"
+        type="test"
+        label="Code"
+        description="Four character Group code"
+        showon="area_group:G"
+    />       
+    <field
+        name="area_code"
+        type="test"
+        label="Code"
+        description="Two character Area code"
+        showon="area_group:A"
+    />   
+   <field
+        name="site_name"
+        type="textfield"
+        label="Site name"
+        description="Name to be given to the Site"
+        required="true"
+        default=""
+    />
+    <field
+        name="strapline"
+        type="textfield"
+        label="Strapline"
+        description="Line of text below the Site name in the header"
+        required="true"
+        default=""
+    />
     </fields>
+  </fieldset>
 </form>

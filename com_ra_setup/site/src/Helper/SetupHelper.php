@@ -1,63 +1,85 @@
 <?php
 
-defined('_JEXEC') or die;
+//defined('_JEXEC') or die;
 
 namespace Ramblers\Component\Ra_setup\Site\Helper;
 
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
+use \Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
+use \Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 
 class SetupHelper {
+
+    protected $app;
+    protected $db;
+    protected $toolsHelper;
+    protected $user;
+
+    public function __construct() {
+        $this->app = Factory::getApplication();
+        $this->db = Factory::getDbo();
+        $this->toolsHelper = new ToolsHelper;
+        $this->user = $this->app->getSession()->get('user');
+    }
 
     public static function getGreeting() {
         return 'RA Setup initialised';
     }
 
-    /*
-      return an array of the nearest organisations and their distances
-      $rows = $setupHelper->getNearestOrganisations($id);
+    public function wizardCompleted() {
+        $sql = 'SELECT key_value FROM #__ra_control WHERE record_type=3';
+        return $this->toolsHelper->getValue($sql);
+    }
 
-      foreach ($rows as $row) {
-      echo $row->group_code;
-      echo ' - ' . htmlspecialchars($row->name);
-      echo ' - ' . number_format($row->distance, 2) .
-      "Miles<br>";
-      }
-     */
-
-    public function getNearestOrganisations(int $organisationId, $type = 'group', int $limit = 5): array {
-// First get the latitude and longitude of the selected organisation
-        $sql = 'SELECT latitude, longitude FROM #__ra_' . $type . 's WHERE id = ' . (int) $organisationId;
-
+    public function getNearestOrganisations($code, $type = 'group', int $limit = 5) {
+        // First get the latitude and longitude of the selected organisation
+        $sql = 'SELECT latitude, longitude FROM #__ra_' . $type . 's WHERE code = "' . $code . '"';
         $org = $this->toolsHelper->getItem($sql);
 
         if (!$org) {
-            $this->app->enqueueMessage('Group not found for ' . $organisationid, 'warning');
+            $this->app->enqueueMessage('Group not found for ' . $code, 'warning');
             return false;
         }
 
         $lat = (float) $org->latitude;
         $lon = (float) $org->longitude;
-
-// Earth's radius in miles
+//        $lat = $org->latitude;
+//        $lon = $org->longitude;
+        if ($lat == 0) {
+            $this->app->enqueueMessage('Latitude is zero for ' . $code, 'warning');
+            return false;
+        }
+        if ($lon == 0) {
+            $this->app->enqueueMessage('Longitude is zero for ' . $code, 'warning');
+            return false;
+        }
+        // Earth's radius in miles
         $earthRadius = 6371;
 
-// Find the five nearest organisations
-        $sql = 'SELECT id, group_code, name, latitude, longitude,
-    (
-        {$earthRadius} * ACOS(
-            COS(RADIANS($lat))
-            * COS(RADIANS(latitude))
-            * COS(RADIANS(longitude) - RADIANS($lon))
-            + SIN(RADIANS($lat))
-            * SIN(RADIANS(latitude))
-        )
-    ) AS distance ';
+        // Find the five nearest organisations
+        $sql = 'SELECT id, code, name, latitude, longitude,
+      (
+      ' . $earthRadius . ' * ACOS(
+      COS(RADIANS(' . $lat . '))
+     * COS(RADIANS(latitude))
+     * COS(RADIANS(longitude) - RADIANS(' . $lon . '))
+      + SIN(RADIANS(' . $lat . '))
+     * SIN(RADIANS(latitude))
+      )
+      ) AS distance ';
         $sql .= 'FROM #__ra_' . $type . 's ';
-        $sql .= 'WHERE id <> ' . (int) $organisationId . ' ';
+        $sql .= 'WHERE code <> "' . $code . '" ';
         $sql .= 'ORDER BY distance ASC LIMIT 5';
-
+//        echo $sql;
         return $this->toolsHelper->getRows($sql);
+    }
+
+    /**
+     * Convenience wrapper for updating a single parameter.
+     */
+    function updateComponentParam(string $component, string $param, $value): bool {
+        return $this->updateComponentParams($component, [$param => $value]);
     }
 
     /**
@@ -108,13 +130,6 @@ class SetupHelper {
             Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
             return false;
         }
-    }
-
-    /**
-     * Convenience wrapper for updating a single parameter.
-     */
-    function updateComponentParam(string $component, string $param, $value): bool {
-        return updateComponentParams($component, [$param => $value]);
     }
 
 }

@@ -2,10 +2,10 @@
 <extension type="component" version="4.0" method="upgrade">
 	<name>COM_RA_SETUP</name>
 	<author>Ramblers</author>
-	<creationDate>2026-08</creationDate>
+	<creationDate>07 Aug 2026</creationDate>
 	<copyright>Copyright (C) 2026 Ramblers. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<description>COM_RA_SETUP_XML_DESCRIPTION</description>
 	<element>com_ra_setup</element>
 	<namespace path="src">Ramblers\Component\Ra_setup</namespace>
