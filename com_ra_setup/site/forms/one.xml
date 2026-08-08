@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form addfieldprefix="Ramblers\Component\Ra_tools\Administrator\Field">
-    <fieldset>
+    <fieldset addruleprefix="Ramblers\Component\Ra_tools\Administrator\Rule">
     <field
         name="area_group"
         type="radio"
         label="Is the site for an Area or a Group?"
         description=""
-        classs="btn-group btn-group-yesno"
         default="G"
         >
             <option value="G">Group</option>
@@ -14,18 +13,20 @@
     </field>
     <field
         name="group_code"
-        type="test"
+        type="text"
         label="Code"
         description="Four character Group code"
+        validate="groupcode"
         showon="area_group:G"
-    />       
+    />
     <field
         name="area_code"
-        type="test"
+        type="text"
         label="Code"
         description="Two character Area code"
+        validate="areacode"
         showon="area_group:A"
-    />   
+    />
    <field
         name="site_name"
         type="textfield"
@@ -42,6 +43,5 @@
         required="true"
         default=""
     />
-    </fields>
   </fieldset>
 </form>

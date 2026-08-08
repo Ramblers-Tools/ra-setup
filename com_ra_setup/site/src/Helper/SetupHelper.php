@@ -132,4 +132,55 @@ class SetupHelper {
         }
     }
 
+    /**
+     * Update parameters on every instance of a site module.
+     *
+     * @param string $module Module name (e.g. 'mod_raheader')
+     * @param array  $params Associative array of parameter => value
+     *
+     * @return bool True on success, false if the module was not found or saving failed.
+     */
+    function updateModuleParams(string $module, array $params): bool {
+        $db = Factory::getContainer()->get('DatabaseDriver');
+
+        try {
+            $query = $db->getQuery(true)
+                    ->select([
+                        $db->quoteName('id'),
+                        $db->quoteName('params'),
+                    ])
+                    ->from($db->quoteName('#__modules'))
+                    ->where($db->quoteName('module') . ' = ' . $db->quote($module))
+                    ->where($db->quoteName('client_id') . ' = 0');
+
+            $db->setQuery($query);
+            $modules = $db->loadObjectList();
+
+            if (empty($modules)) {
+                return false;
+            }
+
+            foreach ($modules as $moduleRecord) {
+                $registry = new Registry($moduleRecord->params);
+
+                foreach ($params as $name => $value) {
+                    $registry->set($name, $value);
+                }
+
+                $query = $db->getQuery(true)
+                        ->update($db->quoteName('#__modules'))
+                        ->set($db->quoteName('params') . ' = ' . $db->quote($registry->toString()))
+                        ->where($db->quoteName('id') . ' = ' . (int) $moduleRecord->id);
+
+                $db->setQuery($query);
+                $db->execute();
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+            return false;
+        }
+    }
+
 }

@@ -1,30 +1,35 @@
 <?php
+
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Router\Route;
+
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')
+    ->useScript('form.validate');
 ?>
 <div class="uk-card uk-card-default uk-card-body">
     <h2>RA Setup Step One</h2>
-    <p>This front-end view now uses the MVC structure expected for a Joomla component.</p>
-    <p>The matching controller and model are available for the first view.</p>
+
+    <form
+        id="one-form"
+        action="<?php echo Route::_('index.php?option=com_ra_setup&task=one.update'); ?>"
+        method="post"
+        class="form-validate form-horizontal"
+    >
+        <?php echo $this->form->renderField('area_group'); ?>
+        <?php echo $this->form->renderField('group_code'); ?>
+        <?php echo $this->form->renderField('area_code'); ?>
+        <?php echo $this->form->renderField('site_name'); ?>
+        <?php echo $this->form->renderField('strapline'); ?>
+
+        <button type="submit" class="validate btn btn-primary">
+            Update and continue
+        </button>
+
+        <input type="hidden" name="option" value="com_ra_setup">
+        <input type="hidden" name="task" value="one.update">
+        <?php echo HTMLHelper::_('form.token'); ?>
+    </form>
 </div>
-
-<?php
-//    return an array of the nearest organisations and their distances
-$rows = $this->setupHelper->getNearestOrganisations('NS03');
-
-foreach ($rows as $row) {
-    echo $row->code;
-    echo ' - ' . htmlspecialchars($row->name);
-    echo ' - ' . number_format($row->distance, 2) .
-    " Miles<br>";
-}
-
-$this->setupHelper->updateComponentParam('com_ra_tools', 'email_new_user', 'charlie@ramblers.tools');
-/*
-$this->setupHelper->updateComponentParams('com_ra_tools', [
-    'home_group' => 'NS03',
-    'away_group' => 'NS04',
-    'season' => '2026',
-    'debug' => 1,
-]);
- *
- */

@@ -10,7 +10,7 @@
  * 07/09/26 CB created
  */
 
-namespace Ramblers\Component\Ra_setup\Site\View\One;
+namespace Ramblers\Component\Ra_setup\Site\View\Two;
 
 defined('_JEXEC') or die;
 
@@ -23,7 +23,6 @@ use \Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 class HtmlView extends BaseHtmlView implements CurrentUserInterface {
 
     protected $app;
-    protected $form;
     protected $setupHelper;
     protected $toolsHelper;
 
@@ -35,13 +34,7 @@ class HtmlView extends BaseHtmlView implements CurrentUserInterface {
         //      die('id=' . $this->user->id);
         $this->setupHelper = new SetupHelper;
         $this->toolsHelper = new ToolsHelper;
-        $this->form = $this->get('Form');
-
-        if (!$this->form) {
-            throw new \RuntimeException('Unable to load the setup form.', 500);
-        }
-
-        $this->document->setTitle('RA Setup Step One');
+        $this->document->setTitle('RA Setup Step Two');
         //       $date_completed = '2026-18-08';
         $date_completed = $this->setupHelper->wizardCompleted();
 

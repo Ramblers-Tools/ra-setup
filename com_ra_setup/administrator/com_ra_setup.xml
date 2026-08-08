@@ -10,6 +10,7 @@
 	<element>com_ra_setup</element>
 	<namespace path="src">Ramblers\Component\Ra_setup</namespace>
 	<files folder="site">
+		<folder>forms</folder>
 		<folder>src</folder>
 		<folder>tmpl</folder>
 	</files>

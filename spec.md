@@ -44,10 +44,12 @@ Validation:
 
 Saving:
 
-The code must be saved in the configuration for RA Tools in field home_group.
+The code must be saved in the configuration for RA Tools in field default_group.
 Lookup the five nearest groups/areas using toolsHelper->getNearestOrganisations, store the codes that are returned as a comma delimited string in the configuration for RA Tools in field group_list.
 
-The value given for the strapping is stored in the parameter for RA Header, overwriting any existing value. The field may be blank.
+The value given for the site name is stored in the parameter website_title for RA Header, overwriting any existing value. The field may be blank.
+
+The value given for the strapline is stored in the parameter website_subtitle for RA Header, overwriting any existing value. The field may be blank.
 
 # Step 2 Home page
 
