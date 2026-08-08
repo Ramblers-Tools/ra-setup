@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+  <fieldset name="setup">
+    <field name="chair" type="text" label="Chair" required="true" />
+    <field name="webmaster" type="text" label="Webmaster" required="true" />
+    <field name="membership_secretary" type="text" label="Membership Secretary" />
+    <field name="secretary" type="text" label="Secretary" />
+    <field name="treasurer" type="text" label="Treasurer" />
+    <field name="walks_coordinator" type="text" label="Walks coordinator" />
+    <field
+      name="committee_members"
+      type="textarea"
+      label="Other committee members"
+      description="Enter multiple names separated by commas"
+    />
+    <field
+      name="mailshot_senders"
+      type="textarea"
+      label="Members who can send mailshots"
+      description="Displayed when RA Mailman is installed; enter multiple names separated by commas"
+    />
+    <field
+      name="event_creators"
+      type="textarea"
+      label="Members who can create events"
+      description="Displayed when RA Events is installed; enter multiple names separated by commas"
+    />
+  </fieldset>
+</form>

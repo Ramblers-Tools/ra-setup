@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+  <fieldset name="setup">
+    <field
+      name="domain"
+      type="text"
+      label="Email domain"
+      description="Maximum 12 characters"
+      maxlength="12"
+      required="true"
+    />
+    <field
+      name="failure_email"
+      type="email"
+      label="Delivery failure email address"
+      validate="email"
+      required="true"
+    />
+  </fieldset>
+</form>

@@ -20,9 +20,8 @@ class OneController extends BaseController
     {
         $this->checkToken();
 
-        if (!$this->app->getIdentity()->authorise('core.manage', 'com_ra_setup')) {
-            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
-        }
+        $helper = new SetupHelper;
+        $helper->assertCanRunWizard();
 
         $model = $this->getModel('One', 'Site');
 
@@ -57,7 +56,6 @@ class OneController extends BaseController
             return false;
         }
 
-        $helper = new SetupHelper;
         $homeCode = strtoupper(trim($data[$isArea ? 'area_code' : 'group_code'] ?? ''));
         $nearest = $helper->getNearestOrganisations($homeCode, $isArea ? 'area' : 'group', 5);
 

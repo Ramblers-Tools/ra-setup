@@ -32,6 +32,21 @@ class SetupHelper {
         return $this->toolsHelper->getValue($sql);
     }
 
+    public function assertCanRunWizard(): void {
+        $dateCompleted = $this->wizardCompleted();
+
+        if ($dateCompleted === false) {
+            throw new \RuntimeException('Unable to determine whether setup has been completed.', 500);
+        }
+
+        if ($dateCompleted !== null && !$this->app->getIdentity()->authorise('core.admin')) {
+            throw new \RuntimeException(
+                'Configuration was completed ' . $dateCompleted . ' and can only be updated by a Super User.',
+                403
+            );
+        }
+    }
+
     public function getNearestOrganisations($code, $type = 'group', int $limit = 5) {
         // First get the latitude and longitude of the selected organisation
         $sql = 'SELECT latitude, longitude FROM #__ra_' . $type . 's WHERE code = "' . $code . '"';

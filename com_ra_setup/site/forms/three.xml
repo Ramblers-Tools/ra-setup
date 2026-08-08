@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+  <fieldset name="setup">
+    <field
+      name="walks_scope"
+      type="radio"
+      label="Which walks should be shown?"
+      default="home"
+      required="true"
+    >
+      <option value="home">Home site only</option>
+      <option value="other">Include other groups</option>
+    </field>
+    <field
+      name="selection_method"
+      type="radio"
+      label="How should other groups be selected?"
+      default="distance"
+      showon="walks_scope:other"
+    >
+      <option value="distance">By distance</option>
+      <option value="neighbours">From neighbouring groups</option>
+    </field>
+    <field
+      name="radius"
+      type="number"
+      label="Radius in miles"
+      default="40"
+      min="10"
+      max="100"
+      showon="walks_scope:other[AND]selection_method:distance"
+    />
+    <field
+      name="neighbour_count"
+      type="list"
+      label="Number of neighbouring groups"
+      default="5"
+      showon="walks_scope:other[AND]selection_method:neighbours"
+    >
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </field>
+  </fieldset>
+</form>
