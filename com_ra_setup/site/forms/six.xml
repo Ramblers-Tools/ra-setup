@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
-  <fieldset name="setup">
-    <field
-      name="committee_stub"
-      type="note"
-      label="Committee details"
-      description="Name, email and role fields will be generated from the unique names saved by Step 5."
-      class="alert alert-info"
-    />
-  </fieldset>
+  <fieldset name="setup" />
 </form>
