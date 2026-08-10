@@ -64,7 +64,7 @@ class SixController extends BaseController
             $db->transactionCommit();
         } catch (\Throwable $e) {
             $db->transactionRollback();
-            $this->app->enqueueMessage($e->getMessage(), 'error');
+            $this->app->enqueueMessage($e->getMessage() . ' persisting people', 'error');
             $this->app->setUserState('com_ra_setup.six.form', $submittedPeople);
             $this->setRedirect('index.php?option=com_ra_setup&view=six');
 

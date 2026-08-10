@@ -15,6 +15,18 @@ class FourController extends BaseController
         return parent::display($cachable, $urlparams);
     }
 
+    public function previous()
+    {
+        $this->checkToken();
+        (new SetupHelper)->assertCanRunWizard();
+        $submittedData = $this->input->get('jform', [], 'array');
+
+        $this->app->setUserState('com_ra_setup.four.data', $submittedData);
+        $this->setRedirect('index.php?option=com_ra_setup&view=three');
+
+        return true;
+    }
+
     public function update()
     {
         $this->checkToken();

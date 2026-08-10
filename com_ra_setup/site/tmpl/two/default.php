@@ -12,7 +12,7 @@ $wa->useScript('keepalive')
 
     <form
         id="two-form"
-        action="index.php?option=com_ra_setup&amp;task=two.update"
+        action="index.php?option=com_ra_setup"
         method="post"
         class="form-validate form-horizontal"
     >
@@ -21,11 +21,16 @@ $wa->useScript('keepalive')
         <?php echo $this->form->renderField('facebook'); ?>
         <?php echo $this->form->renderField('facebook_link'); ?>
 
-        <a class="btn btn-secondary" href="index.php?option=com_ra_setup&amp;view=one">Previous</a>
-        <button type="submit" class="validate btn btn-primary">Update and continue</button>
+        <button
+            type="submit"
+            name="task"
+            value="two.previous"
+            class="btn btn-secondary"
+            formnovalidate
+        >Previous</button>
+        <button type="submit" name="task" value="two.update" class="validate btn btn-primary">Update and continue</button>
 
         <input type="hidden" name="option" value="com_ra_setup">
-        <input type="hidden" name="task" value="two.update">
         <?php echo HTMLHelper::_('form.token'); ?>
     </form>
 </div>

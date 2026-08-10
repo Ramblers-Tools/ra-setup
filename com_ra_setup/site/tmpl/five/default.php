@@ -12,17 +12,22 @@ $wa->useScript('keepalive')->useScript('form.validate');
 
     <form
         id="five-form"
-        action="index.php?option=com_ra_setup&amp;task=five.update"
+        action="index.php?option=com_ra_setup"
         method="post"
         class="form-validate form-horizontal"
     >
         <?php echo $this->form->renderFieldset('setup'); ?>
 
-        <a class="btn btn-secondary" href="index.php?option=com_ra_setup&amp;view=four">Previous</a>
-        <button type="submit" class="validate btn btn-primary">Continue</button>
+        <button
+            type="submit"
+            name="task"
+            value="five.previous"
+            class="btn btn-secondary"
+            formnovalidate
+        >Previous</button>
+        <button type="submit" name="task" value="five.update" class="validate btn btn-primary">Continue</button>
 
         <input type="hidden" name="option" value="com_ra_setup">
-        <input type="hidden" name="task" value="five.update">
         <?php echo HTMLHelper::_('form.token'); ?>
     </form>
 </div>

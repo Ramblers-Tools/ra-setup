@@ -16,6 +16,20 @@ class TwoController extends BaseController
         return parent::display($cachable, $urlparams);
     }
 
+    public function previous()
+    {
+        $this->checkToken();
+
+        $helper = new SetupHelper;
+        $helper->assertCanRunWizard();
+        $submittedData = $this->input->get('jform', [], 'array');
+
+        $this->app->setUserState('com_ra_setup.two.data', $submittedData);
+        $this->setRedirect('index.php?option=com_ra_setup&view=one');
+
+        return true;
+    }
+
     public function update()
     {
         $this->checkToken();

@@ -13,7 +13,7 @@ $wa->useScript('keepalive')
 
     <form
         id="four-form"
-        action="index.php?option=com_ra_setup&amp;task=four.update"
+        action="index.php?option=com_ra_setup"
         method="post"
         class="form-validate form-horizontal"
     >
@@ -23,11 +23,16 @@ $wa->useScript('keepalive')
             Selecting RA Events also enables its module and plugins. Selecting RA Mailman also enables RA Delivery, RA Members and the required plugins.
         </p>
 
-        <a class="btn btn-secondary" href="index.php?option=com_ra_setup&amp;view=three">Previous</a>
-        <button type="submit" class="validate btn btn-primary">Update and continue</button>
+        <button
+            type="submit"
+            name="task"
+            value="four.previous"
+            class="btn btn-secondary"
+            formnovalidate
+        >Previous</button>
+        <button type="submit" name="task" value="four.update" class="validate btn btn-primary">Update and continue</button>
 
         <input type="hidden" name="option" value="com_ra_setup">
-        <input type="hidden" name="task" value="four.update">
         <?php echo HTMLHelper::_('form.token'); ?>
     </form>
 </div>

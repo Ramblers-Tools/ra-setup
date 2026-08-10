@@ -12,19 +12,17 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\Component\Contact\Administrator\Table\ContactTable;
 use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 
-class SixModel extends FormModel
-{
-    public function getForm($data = [], $loadData = true)
-    {
+class SixModel extends FormModel {
+
+    public function getForm($data = [], $loadData = true) {
         return $this->loadForm(
-            'com_ra_setup.six',
-            'six',
-            ['control' => 'jform', 'load_data' => $loadData]
+                        'com_ra_setup.six',
+                        'six',
+                        ['control' => 'jform', 'load_data' => $loadData]
         );
     }
 
-    public function getPeople(): array
-    {
+    public function getPeople(): array {
         $source = Factory::getApplication()->getUserState('com_ra_setup.five.data', []);
 
         if (empty($source['chair']) || empty($source['webmaster'])) {
@@ -75,8 +73,7 @@ class SixModel extends FormModel
         return $people;
     }
 
-    public function validatePeople(array $submitted): array
-    {
+    public function validatePeople(array $submitted): array {
         $expected = $this->getPeople();
 
         if (empty($expected)) {
@@ -112,8 +109,7 @@ class SixModel extends FormModel
         return $clean;
     }
 
-    public function persistPeople(array $people): array
-    {
+    public function persistPeople(array $people): array {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $homeGroup = trim((string) ComponentHelper::getParams('com_ra_tools')->get('default_group', ''));
 
@@ -132,7 +128,7 @@ class SixModel extends FormModel
             }
 
             $users[$key] = $userId;
-            $this->saveProfile($userId, $person['full_name'], $person['email'], strtoupper($homeGroup));
+            $this->saveProfile($userId, $person['full_name'], strtoupper($homeGroup));
             $this->saveContact($userId, $person, $categoryId);
         }
 
@@ -160,7 +156,7 @@ class SixModel extends FormModel
             foreach (array_unique($groups) as $groupTitle) {
                 if (!$this->addUserToGroup($users[$key], $groupTitle)) {
                     $warnings[] = 'User group ' . $groupTitle . ' was not found; ' . $person['full_name']
-                        . ' could not be added to it.';
+                            . ' could not be added to it.';
                 }
             }
         }
@@ -172,8 +168,7 @@ class SixModel extends FormModel
         return array_values(array_unique($warnings));
     }
 
-    private function addPerson(array &$people, string $name, array $roles): void
-    {
+    private function addPerson(array &$people, string $name, array $roles): void {
         $name = trim((string) preg_replace('/\s+/', ' ', $name));
 
         if ($name === '') {
@@ -195,8 +190,7 @@ class SixModel extends FormModel
         $people[$key]['roles'] = array_values(array_unique(array_merge($people[$key]['roles'], $roles)));
     }
 
-    private function splitNames(string $value): array
-    {
+    private function splitNames(string $value): array {
         if (trim($value) === '') {
             return [];
         }
@@ -204,23 +198,21 @@ class SixModel extends FormModel
         return array_values(array_filter(array_map('trim', explode(',', $value))));
     }
 
-    private function getStoredPerson(string $shortName): array
-    {
+    private function getStoredPerson(string $shortName): array {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $sql = 'SELECT u.name, u.email FROM #__users AS u '
-            . 'INNER JOIN #__contact_details AS c ON c.user_id = u.id '
-            . 'INNER JOIN #__categories AS cat ON cat.id = c.catid '
-            . 'WHERE cat.extension = "com_contact" AND LOWER(cat.title) = "committee" '
-            . 'AND (LOWER(c.name) = ' . $db->quote(strtolower($shortName))
-            . ' OR LOWER(SUBSTRING_INDEX(c.name, " ", 1)) = ' . $db->quote(strtolower($shortName)) . ') '
-            . 'ORDER BY c.id DESC LIMIT 1';
+                . 'INNER JOIN #__contact_details AS c ON c.user_id = u.id '
+                . 'INNER JOIN #__categories AS cat ON cat.id = c.catid '
+                . 'WHERE cat.extension = "com_contact" AND LOWER(cat.title) = "committee" '
+                . 'AND (LOWER(c.name) = ' . $db->quote(strtolower($shortName))
+                . ' OR LOWER(SUBSTRING_INDEX(c.name, " ", 1)) = ' . $db->quote(strtolower($shortName)) . ') '
+                . 'ORDER BY c.id DESC LIMIT 1';
         $row = (new ToolsHelper)->getItem($sql);
 
         return $row ? ['name' => (string) $row->name, 'email' => (string) $row->email] : [];
     }
 
-    private function saveUser(string $name, string $email): int
-    {
+    private function saveUser(string $name, string $email): int {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $helper = new ToolsHelper;
         $sql = 'SELECT id FROM #__users WHERE LOWER(email) = ' . $db->quote(strtolower($email)) . ' LIMIT 1';
@@ -228,16 +220,16 @@ class SixModel extends FormModel
 
         if ($userId > 0) {
             $query = $db->getQuery(true)
-                ->update($db->quoteName('#__users'))
-                ->set($db->quoteName('name') . ' = ' . $db->quote($name))
-                ->where($db->quoteName('id') . ' = ' . $userId);
+                    ->update($db->quoteName('#__users'))
+                    ->set($db->quoteName('name') . ' = ' . $db->quote($name))
+                    ->where($db->quoteName('id') . ' = ' . $userId);
             $db->setQuery($query)->execute();
 
             return $userId;
         }
 
         $usernameOwner = (int) $helper->getValue(
-            'SELECT id FROM #__users WHERE LOWER(username) = ' . $db->quote(strtolower($email)) . ' LIMIT 1'
+                        'SELECT id FROM #__users WHERE LOWER(username) = ' . $db->quote(strtolower($email)) . ' LIMIT 1'
         );
 
         if ($usernameOwner > 0) {
@@ -247,16 +239,16 @@ class SixModel extends FormModel
         $now = Factory::getDate()->toSql();
         $password = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
         $record = (object) [
-            'name' => $name,
-            'username' => $email,
-            'email' => $email,
-            'password' => $password,
-            'block' => 0,
-            'sendEmail' => 0,
-            'registerDate' => $now,
-            'activation' => '',
-            'params' => '{}',
-            'requireReset' => 1,
+                    'name' => $name,
+                    'username' => $email,
+                    'email' => $email,
+                    'password' => $password,
+                    'block' => 0,
+                    'sendEmail' => 0,
+                    'registerDate' => $now,
+                    'activation' => '',
+                    'params' => '{}',
+                    'requireReset' => 1,
         ];
         $db->insertObject('#__users', $record);
         $userId = (int) $db->insertid();
@@ -268,8 +260,7 @@ class SixModel extends FormModel
         return $userId;
     }
 
-    private function saveProfile(int $userId, string $name, string $email, string $homeGroup): void
-    {
+    private function saveProfile(int $userId, string $name, string $homeGroup): void {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $helper = new ToolsHelper;
         $exists = (int) $helper->getValue('SELECT COUNT(*) FROM #__ra_profiles WHERE id = ' . $userId) > 0;
@@ -278,14 +269,13 @@ class SixModel extends FormModel
 
         if ($exists) {
             $query = $db->getQuery(true)
-                ->update($db->quoteName('#__ra_profiles'))
-                ->set($db->quoteName('home_group') . ' = ' . $db->quote($homeGroup))
-                ->set($db->quoteName('preferred_name') . ' = ' . $db->quote($name))
-                ->set($db->quoteName('email') . ' = ' . $db->quote($email))
-                ->set($db->quoteName('state') . ' = 1')
-                ->set($db->quoteName('modified') . ' = ' . $db->quote($now))
-                ->set($db->quoteName('modified_by') . ' = ' . $actorId)
-                ->where($db->quoteName('id') . ' = ' . $userId);
+                    ->update($db->quoteName('#__ra_profiles'))
+                    ->set($db->quoteName('home_group') . ' = ' . $db->quote($homeGroup))
+                    ->set($db->quoteName('preferred_name') . ' = ' . $db->quote($name))
+                    ->set($db->quoteName('state') . ' = 1')
+                    ->set($db->quoteName('modified') . ' = ' . $db->quote($now))
+                    ->set($db->quoteName('modified_by') . ' = ' . $actorId)
+                    ->where($db->quoteName('id') . ' = ' . $userId);
             $db->setQuery($query)->execute();
 
             return;
@@ -293,13 +283,12 @@ class SixModel extends FormModel
 
         $columns = $db->getTableColumns('#__ra_profiles', false);
         $record = (object) [
-            'id' => $userId,
-            'home_group' => $homeGroup,
-            'preferred_name' => $name,
-            'email' => $email,
-            'state' => 1,
-            'created' => $now,
-            'created_by' => $actorId,
+                    'id' => $userId,
+                    'home_group' => $homeGroup,
+                    'preferred_name' => $name,
+                    'state' => 1,
+                    'created' => $now,
+                    'created_by' => $actorId,
         ];
 
         if (isset($columns['member_id']) && stripos((string) ($columns['member_id']->Extra ?? ''), 'auto_increment') === false) {
@@ -310,12 +299,11 @@ class SixModel extends FormModel
         $db->insertObject('#__ra_profiles', $record);
     }
 
-    private function addUserToGroup(int $userId, string $title): bool
-    {
+    private function addUserToGroup(int $userId, string $title): bool {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $helper = new ToolsHelper;
         $groupId = (int) $helper->getValue(
-            'SELECT id FROM #__usergroups WHERE title = ' . $db->quote($title) . ' LIMIT 1'
+                        'SELECT id FROM #__usergroups WHERE title = ' . $db->quote($title) . ' LIMIT 1'
         );
 
         if ($groupId < 1) {
@@ -323,22 +311,25 @@ class SixModel extends FormModel
         }
 
         $exists = (int) $helper->getValue(
-            'SELECT COUNT(*) FROM #__user_usergroup_map WHERE user_id = ' . $userId . ' AND group_id = ' . $groupId
-        ) > 0;
+                        'SELECT COUNT(*) FROM #__user_usergroup_map WHERE user_id = ' . $userId . ' AND group_id = ' . $groupId
+                ) > 0;
 
         if (!$exists) {
-            $db->insertObject('#__user_usergroup_map', (object) ['user_id' => $userId, 'group_id' => $groupId]);
+            $mapping = (object) [
+                        'user_id' => $userId,
+                        'group_id' => $groupId,
+            ];
+            $db->insertObject('#__user_usergroup_map', $mapping);
         }
 
         return true;
     }
 
-    private function getCommitteeCategoryId(): int
-    {
+    private function getCommitteeCategoryId(): int {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $categoryId = (int) (new ToolsHelper)->getValue(
-            'SELECT id FROM #__categories WHERE extension = "com_contact" '
-            . 'AND LOWER(title) = "committee" ORDER BY id LIMIT 1'
+                        'SELECT id FROM #__categories WHERE extension = "com_contact" '
+                        . 'AND LOWER(title) = "committee" ORDER BY id LIMIT 1'
         );
 
         if ($categoryId > 0) {
@@ -349,31 +340,30 @@ class SixModel extends FormModel
         $category->setLocation(1, 'last-child');
 
         if (!$category->bind([
-            'parent_id' => 1,
-            'extension' => 'com_contact',
-            'title' => 'Committee',
-            'alias' => 'committee',
-            'published' => 1,
-            'access' => 1,
-            'language' => '*',
-            'params' => '{}',
-            'metadata' => '{}',
-        ]) || !$category->check() || !$category->store()) {
+                    'parent_id' => 1,
+                    'extension' => 'com_contact',
+                    'title' => 'Committee',
+                    'alias' => 'committee',
+                    'published' => 1,
+                    'access' => 1,
+                    'language' => '*',
+                    'params' => '{}',
+                    'metadata' => '{}',
+                ]) || !$category->check() || !$category->store()) {
             throw new \RuntimeException('Unable to create the Committee contact category: ' . $category->getError());
         }
 
         return (int) $category->id;
     }
 
-    private function saveContact(int $userId, array $person, int $categoryId): void
-    {
+    private function saveContact(int $userId, array $person, int $categoryId): void {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         Factory::getApplication()->bootComponent('com_contact');
         $contactId = (int) (new ToolsHelper)->getValue(
-            'SELECT c.id FROM #__contact_details AS c '
-            . 'INNER JOIN #__categories AS cat ON cat.id = c.catid '
-            . 'WHERE c.user_id = ' . $userId . ' AND cat.extension = "com_contact" '
-            . 'AND LOWER(cat.title) = "committee" ORDER BY c.id LIMIT 1'
+                        'SELECT c.id FROM #__contact_details AS c '
+                        . 'INNER JOIN #__categories AS cat ON cat.id = c.catid '
+                        . 'WHERE c.user_id = ' . $userId . ' AND cat.extension = "com_contact" '
+                        . 'AND LOWER(cat.title) = "committee" ORDER BY c.id LIMIT 1'
         );
         $contact = new ContactTable($db);
 
@@ -382,24 +372,23 @@ class SixModel extends FormModel
         }
 
         if (!$contact->bind([
-            'name' => $person['full_name'],
-            'alias' => strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $person['full_name']))) . '-' . $userId,
-            'con_position' => implode('+', $person['roles']),
-            'email_to' => $person['email'],
-            'user_id' => $userId,
-            'catid' => $categoryId,
-            'published' => 1,
-            'access' => 1,
-            'language' => '*',
-            'params' => '{}',
-            'metadata' => '{}',
-        ]) || !$contact->check() || !$contact->store()) {
+                    'name' => $person['full_name'],
+                    'alias' => strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $person['full_name']))) . '-' . $userId,
+                    'con_position' => implode('+', $person['roles']),
+                    'email_to' => $person['email'],
+                    'user_id' => $userId,
+                    'catid' => $categoryId,
+                    'published' => 1,
+                    'access' => 1,
+                    'language' => '*',
+                    'params' => '{}',
+                    'metadata' => '{}',
+                ]) || !$contact->check() || !$contact->store()) {
             throw new \RuntimeException('Unable to save the contact for ' . $person['full_name'] . ': ' . $contact->getError());
         }
     }
 
-    private function saveMailmanAccess(array $people, array $users): void
-    {
+    private function saveMailmanAccess(array $people, array $users): void {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $helper = new ToolsHelper;
         $listRows = $helper->getRows('SELECT id, name FROM #__ra_mail_lists ORDER BY id');
@@ -429,9 +418,9 @@ class SixModel extends FormModel
 
         foreach ($listRows as $list) {
             $query = $db->getQuery(true)
-                ->update($db->quoteName('#__ra_mail_lists'))
-                ->set($db->quoteName('owner_id') . ' = ' . $chairId)
-                ->where($db->quoteName('id') . ' = ' . (int) $list->id);
+                    ->update($db->quoteName('#__ra_mail_lists'))
+                    ->set($db->quoteName('owner_id') . ' = ' . $chairId)
+                    ->where($db->quoteName('id') . ' = ' . (int) $list->id);
             $db->setQuery($query)->execute();
             $this->saveSubscription((int) $list->id, $chairId, 3);
 
@@ -447,39 +436,40 @@ class SixModel extends FormModel
         }
     }
 
-    private function saveSubscription(int $listId, int $userId, int $recordType): void
-    {
+    private function saveSubscription(int $listId, int $userId, int $recordType): void {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $helper = new ToolsHelper;
         $id = (int) $helper->getValue(
-            'SELECT id FROM #__ra_mail_subscriptions WHERE list_id = ' . $listId
-            . ' AND user_id = ' . $userId . ' AND record_type = ' . $recordType . ' LIMIT 1'
+                        'SELECT id FROM #__ra_mail_subscriptions WHERE list_id = ' . $listId
+                        . ' AND user_id = ' . $userId . ' AND record_type = ' . $recordType . ' LIMIT 1'
         );
         $now = Factory::getDate()->toSql();
         $actorId = (int) Factory::getApplication()->getIdentity()->id;
 
         if ($id > 0) {
             $query = $db->getQuery(true)
-                ->update($db->quoteName('#__ra_mail_subscriptions'))
-                ->set($db->quoteName('state') . ' = 1')
-                ->set($db->quoteName('method_id') . ' = 2')
-                ->set($db->quoteName('modified') . ' = ' . $db->quote($now))
-                ->set($db->quoteName('modified_by') . ' = ' . $actorId)
-                ->where($db->quoteName('id') . ' = ' . $id);
+                    ->update($db->quoteName('#__ra_mail_subscriptions'))
+                    ->set($db->quoteName('state') . ' = 1')
+                    ->set($db->quoteName('method_id') . ' = 2')
+                    ->set($db->quoteName('modified') . ' = ' . $db->quote($now))
+                    ->set($db->quoteName('modified_by') . ' = ' . $actorId)
+                    ->where($db->quoteName('id') . ' = ' . $id);
             $db->setQuery($query)->execute();
 
             return;
         }
 
-        $db->insertObject('#__ra_mail_subscriptions', (object) [
-            'list_id' => $listId,
-            'user_id' => $userId,
-            'record_type' => $recordType,
-            'method_id' => 2,
-            'state' => 1,
-            'ip_address' => '',
-            'created' => $now,
-            'created_by' => $actorId,
-        ]);
+        $subscription = (object) [
+                    'list_id' => $listId,
+                    'user_id' => $userId,
+                    'record_type' => $recordType,
+                    'method_id' => 2,
+                    'state' => 1,
+                    'ip_address' => '',
+                    'created' => $now,
+                    'created_by' => $actorId,
+        ];
+        $db->insertObject('#__ra_mail_subscriptions', $subscription);
     }
+
 }

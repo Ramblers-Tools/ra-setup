@@ -7,7 +7,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\FormModel;
 use Joomla\Database\DatabaseInterface;
-use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 
 class TwoModel extends FormModel {
 
@@ -22,11 +21,21 @@ class TwoModel extends FormModel {
         );
     }
 
-    public function getHomeArticle() {
-        $sql = 'SELECT id, title, introtext,`fulltext` FROM #__content ';
-        $sql .= 'WHERE alias = "home" ORDER BY id ASC LIMIT 1';
-        echo "$sql<br>";
-        return (new ToolsHelper)->getItem($sql);
+    public function getHomeArticle(): ?object {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+                ->select([
+                    $db->quoteName('id'),
+                    $db->quoteName('title'),
+                    $db->quoteName('introtext'),
+                    $db->quoteName('fulltext'),
+                ])
+                ->from($db->quoteName('#__content'))
+                ->where($db->quoteName('alias') . ' = ' . $db->quote('home'))
+                ->order($db->quoteName('id') . ' ASC');
+        $db->setQuery($query, 0, 1);
+
+        return $db->loadObject();
     }
 
     public function updateHomeArticle(string $title, string $body): bool {
@@ -36,18 +45,38 @@ class TwoModel extends FormModel {
             throw new \RuntimeException('Unable to find the Home article with alias "home".');
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $db->getQuery(true);
-        $query->update($db->quoteName('#__content'))
-                ->set($db->quoteName('title') . ' = ' . $db->quote($title))
-                ->set($db->quoteName('introtext') . ' = ' . $db->quote($body))
-                ->set($db->quoteName('fulltext') . ' = ' . $db->quote(''))
-                ->set($db->quoteName('modified') . ' = ' . $db->quote(Factory::getDate()->toSql()))
-                ->set($db->quoteName('modified_by') . ' = ' . (int) Factory::getApplication()->getIdentity()->id)
-                ->where($db->quoteName('id') . ' = ' . (int) $article->id);
+        $articleModel = Factory::getApplication()
+                ->bootComponent('com_content')
+                ->getMVCFactory()
+                ->createModel('Article', 'Administrator', ['ignore_request' => true]);
 
-        $db->setQuery($query);
-        $db->execute();
+        if (!$articleModel) {
+            throw new \RuntimeException('Unable to load the Joomla Article model.');
+        }
+
+        $current = $articleModel->getItem((int) $article->id);
+
+        if (!$current || empty($current->id)) {
+            throw new \RuntimeException('Unable to load the Home article through Joomla.');
+        }
+
+        $data = [
+            'id' => (int) $current->id,
+            'catid' => (int) $current->catid,
+            'title' => $title,
+            'alias' => (string) $current->alias,
+            'introtext' => $body,
+            'fulltext' => '',
+            'state' => (int) $current->state,
+            'access' => (int) $current->access,
+            'language' => (string) $current->language,
+        ];
+
+        if (!$articleModel->save($data)) {
+            throw new \RuntimeException(
+                    'Unable to update the Home article: ' . (string) $articleModel->getError()
+            );
+        }
 
         return true;
     }
@@ -55,22 +84,21 @@ class TwoModel extends FormModel {
     protected function loadFormData() {
         $app = Factory::getApplication();
         $data = $app->getUserState('com_ra_setup.two.data', []);
-
-        if (!empty($data)) {
-            return $data;
-        }
-
         $article = $this->getHomeArticle();
 
-        if (!$article) {
-            return ['facebook' => '0'];
+        if ($article) {
+            if (trim((string) ($data['title'] ?? '')) === '') {
+                $data['title'] = (string) $article->title;
+            }
+
+            if (trim((string) ($data['body'] ?? '')) === '') {
+                $data['body'] = (string) $article->introtext . (string) $article->fulltext;
+            }
         }
 
-        return [
-            'title' => $article->title,
-            'body' => $article->introtext . $article->fulltext,
-            'facebook' => '0',
-        ];
+        $data['facebook'] = (string) ($data['facebook'] ?? '0');
+
+        return $data;
     }
 
 }
