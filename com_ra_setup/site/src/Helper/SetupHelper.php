@@ -6,8 +6,9 @@ namespace Ramblers\Component\Ra_setup\Site\Helper;
 
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
-use \Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
-use \Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
+use Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
+use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
+use Ramblers\Component\Ra_tools\Site\Helpers\ToolsTable;
 
 class SetupHelper {
 
@@ -41,14 +42,19 @@ class SetupHelper {
 
         if ($dateCompleted !== null && !$this->app->getIdentity()->authorise('core.admin')) {
             throw new \RuntimeException(
-                'Configuration was completed ' . $dateCompleted . ' and can only be updated by a Super User.',
-                403
+                            'Configuration was completed ' . $dateCompleted . ' and can only be updated by a Super User.',
+                            403
             );
         }
     }
 
-    public function getNearestOrganisations($code, $type = 'group', int $limit = 5) {
+    public function getNearestOrganisations($code, int $limit = 5, $display = 'N') {
         // First get the latitude and longitude of the selected organisation
+        if (strlen($code) == 4) {
+            $type = 'group';
+        } else {
+            $type .= 'area';
+        }
         $sql = 'SELECT latitude, longitude FROM #__ra_' . $type . 's WHERE code = "' . $code . '"';
         $org = $this->toolsHelper->getItem($sql);
 
@@ -86,7 +92,22 @@ class SetupHelper {
         $sql .= 'FROM #__ra_' . $type . 's ';
         $sql .= 'WHERE code <> "' . $code . '" ';
         $sql .= 'ORDER BY distance ASC LIMIT 5';
-//        echo $sql;
+        $rows = $this->toolsHelper->getRows($sql);
+ //       echo $sql;
+       if ($display == 'Y') {
+            $objTable = new ToolsTable;
+            $objTable->add_header("Num,Code, Name,Distance");
+            $i=0;
+            foreach ($rows as $row) {
+                $i++;
+                 $objTable->add_item($i);
+                $objTable->add_item($row->code);
+                $objTable->add_item($row->name);
+                $objTable->add_item($row->distance);
+
+                $objTable->generate_line();
+            }
+        }
         return $this->toolsHelper->getRows($sql);
     }
 

@@ -55,7 +55,7 @@ The value given for the strapline is stored in the parameter website_subtitle fo
 
     - Prompt for the page title for the Home page 
     - Also prompt for a textual description for the site, as an Editor field.
-    - A link to Facenpok may or may mot br required: If it is, prompt for the URL
+    - A link to Facenbook may or may not be required: If it is, prompt for the URL
 
 Validation:
 
@@ -70,9 +70,10 @@ Additionally, the URL of the website root is saved in the configuration for RA T
 # Step 3 Walk details
 
    - Display the Area/Group code from previous step and the associated name (use ToolsHelper / lookupGroup)
-    -Display details of the neighbouring groups, using ToolsHelper / getNearestOrganisations:
+    - Display details of the neighbouring groups, using ToolsHelper / getNearestOrganisations:
     Ranking/Code/name/distance in miles
-    -Prompt whether or not to show walks only for the home site, or to include other Groups.
+    - Prompt whether or not to show walks only for the home site, or to include other Groups.
+    - If selecting by groups, prompt for the number of neighbouring groups to include.
 
 If including other groups, select between:
 
@@ -86,8 +87,19 @@ If neighbouring groups selected, choose a number between 1 and 5 from a drop-dow
 Validation:
 If radius is selected, it must be a value between 10 and 100
 Saving:
-If necessary, update the component configuration with the appropriate number of group codes, held as a comma delimited string.
-Depending on the selection, one or more menu entries will be unpublished (eg all entries where note='radius')
+- If necessary, update the component configuration with the appropriate number of group codes, held as a comma delimited string.
+- Depending on the selection, one or more menu entries will be unpublished as follows:
+
+If only showing walks for the local group, unpublish all menu entries with note = radius or =group
+
+If selecting walks by radius:
+  - Find all menu entries with note = radius, display the title and ensure their status=published
+  - Find all menu entries with note = group, and ensure their status=unpublished 
+
+If selecting walks by group:
+  - Update component params group_list with the appropriate number of entries
+  - Find all menu entries with note = group, display the title and ensure their status=published
+  - Find all menu entries with note = radius, and ensure their status=unpublished 
 
 # Step 4 Select optional components
 
@@ -95,13 +107,14 @@ Prompt if the optional components are required:
 
    - RA Events
    - RA Mailman
-   - RA Members
-   - RA Delivery
-    - RA SSO
+   - RA SSO
 
 Validation:
+If RA Events is selected, enable:
+com_ra_events, mod_ra_events, plg_ra_events and plg_ra_eventscli
 
-If RA Mailman is selected, RA Delivery must be selected.
+If RA Mailman is selected, enable:
+com_ra_mailman, com_ra_delivery, com_ra_members, plg_ra_mailman and plg_ra_delivery
 
 Saving:
 Enable/disable the components as appropriate

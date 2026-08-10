@@ -20,11 +20,18 @@ use \Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
 
 class HtmlView extends BaseHtmlView implements CurrentUserInterface {
 
+    protected $form;
     protected $setupHelper;
 
     public function display($tpl = null) {
         $this->setupHelper = new SetupHelper;
         $this->setupHelper->assertCanRunWizard();
+        $this->form = $this->get('Form');
+
+        if (!$this->form) {
+            throw new \RuntimeException('Unable to load the Step 2 form.', 500);
+        }
+
         $this->document->setTitle('RA Setup Step Two');
         return parent::display($tpl);
     }

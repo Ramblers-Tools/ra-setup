@@ -8,6 +8,7 @@
 	<version>0.1.1</version>
 	<description>COM_RA_SETUP_XML_DESCRIPTION</description>
 	<element>com_ra_setup</element>
+	<scriptfile>script.php</scriptfile>
 	<namespace path="src">Ramblers\Component\Ra_setup</namespace>
 	<files folder="site">
 		<folder>forms</folder>

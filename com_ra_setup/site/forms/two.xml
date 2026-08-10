@@ -1,39 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<form addfieldprefix="Ramblers\Component\Ra_tools\Administrator\Field">
-    <fieldset>
+<form>
+  <fieldset>
     <field
         name="title"
-        type="textfield"
+        type="text"
         label="Title"
         description="Title of the home page"
-        class ="input-xxlarge"
+        class="input-xxlarge"
+        filter="string"
         required="true"
-        default=""
     />
     <field
-            name="body"
-            type="editor"
-            label="Content"
-            description="Content of the email"
-            filter="raw"
-            required="true"
-            default=""
-            />
+        name="body"
+        type="editor"
+        label="Group description"
+        description="Content for the Home page"
+        filter="raw"
+        required="true"
+    />
     <field
         name="facebook"
         type="radio"
         label="Is a link to Facebook required?"
-        description=""
+        class="btn-group btn-group-yesno"
         default="0"
-        >
-            <option value="0">No</option>
-            <option value="1">Yes</option>
+    >
+        <option value="0">No</option>
+        <option value="1">Yes</option>
     </field>   
-    <field name="facebook_link" 
-           validate="url" 
-           type="url" 
-           label="Facebook link" 
-           description="Link to your facebook page" 
-           />             
+    <field
+        name="facebook_link"
+        type="url"
+        label="Facebook link"
+        description="Link to your Facebook page"
+        validate="url"
+        showon="facebook:1"
+    />
   </fieldset>
 </form>

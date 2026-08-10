@@ -9,15 +9,13 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
 
-class OneController extends BaseController
-{
-    public function display($cachable = false, $urlparams = false)
-    {
+class OneController extends BaseController {
+
+    public function display($cachable = false, $urlparams = false) {
         return parent::display($cachable, $urlparams);
     }
 
-    public function update()
-    {
+    public function update() {
         $this->checkToken();
 
         $helper = new SetupHelper;
@@ -48,8 +46,8 @@ class OneController extends BaseController
             }
 
             $this->app->setUserState(
-                'com_ra_setup.one.data',
-                $this->input->get('jform', [], 'array')
+                    'com_ra_setup.one.data',
+                    $this->input->get('jform', [], 'array')
             );
             $this->setRedirect('index.php?option=com_ra_setup&view=one');
 
@@ -57,7 +55,7 @@ class OneController extends BaseController
         }
 
         $homeCode = strtoupper(trim($data[$isArea ? 'area_code' : 'group_code'] ?? ''));
-        $nearest = $helper->getNearestOrganisations($homeCode, $isArea ? 'area' : 'group', 5);
+        $nearest = $helper->getNearestOrganisations($homeCode, 5, 'N');
 
         if ($nearest === false) {
             $this->app->setUserState('com_ra_setup.one.data', $data);
@@ -68,8 +66,8 @@ class OneController extends BaseController
         }
 
         $groupList = implode(',', array_map(
-            static fn($organisation) => $organisation->code,
-            $nearest
+                        static fn($organisation) => $organisation->code,
+                        $nearest
         ));
 
         $db = Factory::getContainer()->get('DatabaseDriver');
@@ -78,16 +76,16 @@ class OneController extends BaseController
             $db->transactionStart();
 
             if (!$helper->updateComponentParams('com_ra_tools', [
-                'default_group' => $homeCode,
-                'group_list' => $groupList,
-            ])) {
+                        'default_group' => $homeCode,
+                        'group_list' => $groupList,
+                    ])) {
                 throw new \RuntimeException('Unable to update RA Tools parameters.');
             }
 
             if (!$helper->updateModuleParams('mod_raheader', [
-                'website_title' => $data['site_name'] ?? '',
-                'website_subtitle' => $data['strapline'] ?? '',
-            ])) {
+                        'website_title' => $data['site_name'] ?? '',
+                        'website_subtitle' => $data['strapline'] ?? '',
+                    ])) {
                 throw new \RuntimeException('Unable to update RA Header parameters.');
             }
 
@@ -107,4 +105,5 @@ class OneController extends BaseController
 
         return true;
     }
+
 }

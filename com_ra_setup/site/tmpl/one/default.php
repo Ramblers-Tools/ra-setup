@@ -1,5 +1,4 @@
 <?php
-
 defined('_JEXEC') or die;
 
 use Joomla\CMS\HTML\HTMLHelper;
@@ -7,7 +6,7 @@ use Joomla\CMS\Router\Route;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('keepalive')
-    ->useScript('form.validate');
+        ->useScript('form.validate');
 ?>
 <div class="uk-card uk-card-default uk-card-body">
     <h2>RA Setup Step One</h2>
@@ -17,12 +16,14 @@ $wa->useScript('keepalive')
         action="<?php echo Route::_('index.php?option=com_ra_setup&task=one.update'); ?>"
         method="post"
         class="form-validate form-horizontal"
-    >
-        <?php echo $this->form->renderField('area_group'); ?>
-        <?php echo $this->form->renderField('group_code'); ?>
-        <?php echo $this->form->renderField('area_code'); ?>
-        <?php echo $this->form->renderField('site_name'); ?>
-        <?php echo $this->form->renderField('strapline'); ?>
+        >
+            <?php
+            //       echo $this->form->renderField('area_group');
+            echo $this->form->renderField('group_code');
+            //       echo $this->form->renderField('area_code');
+            echo $this->form->renderField('site_name');
+            echo $this->form->renderField('strapline');
+            ?>
 
         <button type="submit" class="validate btn btn-primary">
             Update and continue
