@@ -1,15 +1,33 @@
 <?php
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
+
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')->useScript('form.validate');
 ?>
 <div class="uk-card uk-card-default uk-card-body">
     <h2>RA Setup Step Seven: Email configuration</h2>
-    <div class="alert alert-info">
-        Domain defaults, SMTP2GO provisioning, RA Delivery parameter updates and final completion processing remain to be implemented.
-    </div>
 
-    <?php echo $this->form->renderFieldset('setup'); ?>
+    <form
+        id="seven-form"
+        action="index.php?option=com_ra_setup"
+        method="post"
+        class="form-validate form-horizontal"
+    >
+        <?php echo $this->form->renderFieldset('setup'); ?>
 
-    <a class="btn btn-secondary" href="index.php?option=com_ra_setup&amp;view=six">Previous</a>
-    <button class="btn btn-primary" type="button" disabled>Complete setup</button>
+        <button
+            type="submit"
+            name="task"
+            value="seven.previous"
+            class="btn btn-secondary"
+            formnovalidate
+        >Previous</button>
+        <button type="submit" name="task" value="seven.update" class="validate btn btn-primary">Save configuration</button>
+
+        <input type="hidden" name="option" value="com_ra_setup">
+        <?php echo HTMLHelper::_('form.token'); ?>
+    </form>
 </div>

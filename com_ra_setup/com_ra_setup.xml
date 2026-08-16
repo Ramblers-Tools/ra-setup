@@ -2,10 +2,10 @@
 <extension type="component" version="4.0" method="upgrade">
 	<name>RA Setup</name>
 	<author>Ramblers</author>
-	<creationDate>16 Aug 2026</creationDate>
+	<creationDate>15 Aug 2026</creationDate>
 	<copyright>Copyright (C) 2026 Ramblers. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>0.1.3</version>
+	<version>0.1.2</version>
 	<description>Installation Wizard to set up a new website</description>
 	<element>com_ra_setup</element>
 	<scriptfile>script.php</scriptfile>

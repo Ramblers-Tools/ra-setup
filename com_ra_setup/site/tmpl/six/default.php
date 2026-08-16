@@ -5,6 +5,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 
 $wa = $this->document->getWebAssetManager();
+$wa->registerAndUseStyle('ramblers', 'com_ra_tools/ramblers.css');
 $wa->useScript('keepalive')->useScript('form.validate');
 ?>
 <div class="uk-card uk-card-default uk-card-body">

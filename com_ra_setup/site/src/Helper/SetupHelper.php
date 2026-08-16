@@ -33,6 +33,22 @@ class SetupHelper {
         return $this->toolsHelper->getValue($sql);
     }
 
+    public function isWizardCompleted(): bool {
+        $dateCompleted = $this->wizardCompleted();
+
+        if ($dateCompleted === false) {
+            throw new \RuntimeException('Unable to determine whether setup has been completed.', 500);
+        }
+
+        return $dateCompleted !== null;
+    }
+
+    public function assertWizardNotCompleted(): void {
+        if ($this->isWizardCompleted()) {
+            throw new \RuntimeException('The setup wizard has already been completed.', 404);
+        }
+    }
+
     public function assertCanRunWizard(): void {
         $dateCompleted = $this->wizardCompleted();
 

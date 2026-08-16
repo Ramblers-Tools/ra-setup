@@ -31,7 +31,7 @@
         name="site_name"
         type="textfield"
         label="Site name"
-        description="Name to be given to the Site"
+        description="Name to be given to the Site in the page header"
         required="true"
         default=""
     />
@@ -39,7 +39,7 @@
         name="strapline"
         type="textfield"
         label="Strapline"
-        description="Line of text below the Site name in the header"
+        description="Line of text below the Site name in the pageheader"
         required="true"
         default=""
     />

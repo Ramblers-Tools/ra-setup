@@ -5,7 +5,7 @@
       name="events"
       type="radio"
       label="RA Events"
-      class="btn-group btn-group-yesno"
+      description ="RA Events allows you to manage Events and Bookings."
       default="0"
       required="true"
     >
@@ -16,7 +16,7 @@
       name="mailman"
       type="radio"
       label="RA Mailman"
-      class="btn-group btn-group-yesno"
+      description ="RA Mailman allows you to manage mailing lists and communicate simple and effectively with your members."
       default="0"
       required="true"
     >
@@ -27,7 +27,7 @@
       name="sso"
       type="radio"
       label="RA SSO"
-      class="btn-group btn-group-yesno"
+      description ="RA Single Sign On is still under development, but will enable you to use the same credentials on multiple sites."
       default="0"
       required="true"
     >

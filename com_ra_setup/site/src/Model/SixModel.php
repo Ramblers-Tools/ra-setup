@@ -7,12 +7,21 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\FormModel;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\Table\Category;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Component\Contact\Administrator\Table\ContactTable;
+use Ramblers\Component\Ra_tools\Site\Helpers\PersonHelper;
 use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 
 class SixModel extends FormModel {
+
+    protected $personHelper;
+
+    public function __construct($config = [], ?MVCFactoryInterface $factory = null) {
+        parent::__construct($config, $factory);
+        $this->personHelper = new PersonHelper;
+    }
 
     public function getForm($data = [], $loadData = true) {
         return $this->loadForm(
@@ -121,15 +130,15 @@ class SixModel extends FormModel {
         $users = [];
 
         foreach ($people as $key => $person) {
-            $userId = $this->saveUser($person['full_name'], $person['email']);
+            $userId = $this->personHelper->saveUser($person['full_name'], $person['email']);
 
-            if (!$this->addUserToGroup($userId, 'Registered')) {
+            if (!$this->personHelper->addUserToGroup($userId, 'Registered')) {
                 throw new \RuntimeException('The Joomla Registered user group was not found.');
             }
 
             $users[$key] = $userId;
-            $this->saveProfile($userId, $person['full_name'], strtoupper($homeGroup));
-            $this->saveContact($userId, $person, $categoryId);
+            $this->personHelper->saveProfile($userId, $person['full_name'], strtoupper($homeGroup));
+            $this->personHelper->saveContact($userId, $person, $categoryId);
         }
 
         $warnings = [];
@@ -154,7 +163,7 @@ class SixModel extends FormModel {
             }
 
             foreach (array_unique($groups) as $groupTitle) {
-                if (!$this->addUserToGroup($users[$key], $groupTitle)) {
+                if (!$this->personHelper->addUserToGroup($users[$key], $groupTitle)) {
                     $warnings[] = 'User group ' . $groupTitle . ' was not found; ' . $person['full_name']
                             . ' could not be added to it.';
                 }
@@ -212,119 +221,6 @@ class SixModel extends FormModel {
         return $row ? ['name' => (string) $row->name, 'email' => (string) $row->email] : [];
     }
 
-    private function saveUser(string $name, string $email): int {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $helper = new ToolsHelper;
-        $sql = 'SELECT id FROM #__users WHERE LOWER(email) = ' . $db->quote(strtolower($email)) . ' LIMIT 1';
-        $userId = (int) $helper->getValue($sql);
-
-        if ($userId > 0) {
-            $query = $db->getQuery(true)
-                    ->update($db->quoteName('#__users'))
-                    ->set($db->quoteName('name') . ' = ' . $db->quote($name))
-                    ->where($db->quoteName('id') . ' = ' . $userId);
-            $db->setQuery($query)->execute();
-
-            return $userId;
-        }
-
-        $usernameOwner = (int) $helper->getValue(
-                        'SELECT id FROM #__users WHERE LOWER(username) = ' . $db->quote(strtolower($email)) . ' LIMIT 1'
-        );
-
-        if ($usernameOwner > 0) {
-            throw new \RuntimeException('The username ' . $email . ' is already used by another account.');
-        }
-
-        $now = Factory::getDate()->toSql();
-        $password = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
-        $record = (object) [
-                    'name' => $name,
-                    'username' => $email,
-                    'email' => $email,
-                    'password' => $password,
-                    'block' => 0,
-                    'sendEmail' => 0,
-                    'registerDate' => $now,
-                    'activation' => '',
-                    'params' => '{}',
-                    'requireReset' => 1,
-        ];
-        $db->insertObject('#__users', $record);
-        $userId = (int) $db->insertid();
-
-        if ($userId < 1) {
-            throw new \RuntimeException('Unable to create the Joomla user for ' . $name . '.');
-        }
-
-        return $userId;
-    }
-
-    private function saveProfile(int $userId, string $name, string $homeGroup): void {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $helper = new ToolsHelper;
-        $exists = (int) $helper->getValue('SELECT COUNT(*) FROM #__ra_profiles WHERE id = ' . $userId) > 0;
-        $now = Factory::getDate()->toSql();
-        $actorId = (int) Factory::getApplication()->getIdentity()->id;
-
-        if ($exists) {
-            $query = $db->getQuery(true)
-                    ->update($db->quoteName('#__ra_profiles'))
-                    ->set($db->quoteName('home_group') . ' = ' . $db->quote($homeGroup))
-                    ->set($db->quoteName('preferred_name') . ' = ' . $db->quote($name))
-                    ->set($db->quoteName('state') . ' = 1')
-                    ->set($db->quoteName('modified') . ' = ' . $db->quote($now))
-                    ->set($db->quoteName('modified_by') . ' = ' . $actorId)
-                    ->where($db->quoteName('id') . ' = ' . $userId);
-            $db->setQuery($query)->execute();
-
-            return;
-        }
-
-        $columns = $db->getTableColumns('#__ra_profiles', false);
-        $record = (object) [
-                    'id' => $userId,
-                    'home_group' => $homeGroup,
-                    'preferred_name' => $name,
-                    'state' => 1,
-                    'created' => $now,
-                    'created_by' => $actorId,
-        ];
-
-        if (isset($columns['member_id']) && stripos((string) ($columns['member_id']->Extra ?? ''), 'auto_increment') === false) {
-            $nextId = (int) $helper->getValue('SELECT COALESCE(MAX(member_id), 0) + 1 FROM #__ra_profiles');
-            $record->member_id = max(1, $nextId);
-        }
-
-        $db->insertObject('#__ra_profiles', $record);
-    }
-
-    private function addUserToGroup(int $userId, string $title): bool {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $helper = new ToolsHelper;
-        $groupId = (int) $helper->getValue(
-                        'SELECT id FROM #__usergroups WHERE title = ' . $db->quote($title) . ' LIMIT 1'
-        );
-
-        if ($groupId < 1) {
-            return false;
-        }
-
-        $exists = (int) $helper->getValue(
-                        'SELECT COUNT(*) FROM #__user_usergroup_map WHERE user_id = ' . $userId . ' AND group_id = ' . $groupId
-                ) > 0;
-
-        if (!$exists) {
-            $mapping = (object) [
-                        'user_id' => $userId,
-                        'group_id' => $groupId,
-            ];
-            $db->insertObject('#__user_usergroup_map', $mapping);
-        }
-
-        return true;
-    }
-
     private function getCommitteeCategoryId(): int {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $categoryId = (int) (new ToolsHelper)->getValue(
@@ -354,38 +250,6 @@ class SixModel extends FormModel {
         }
 
         return (int) $category->id;
-    }
-
-    private function saveContact(int $userId, array $person, int $categoryId): void {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        Factory::getApplication()->bootComponent('com_contact');
-        $contactId = (int) (new ToolsHelper)->getValue(
-                        'SELECT c.id FROM #__contact_details AS c '
-                        . 'INNER JOIN #__categories AS cat ON cat.id = c.catid '
-                        . 'WHERE c.user_id = ' . $userId . ' AND cat.extension = "com_contact" '
-                        . 'AND LOWER(cat.title) = "committee" ORDER BY c.id LIMIT 1'
-        );
-        $contact = new ContactTable($db);
-
-        if ($contactId > 0 && !$contact->load($contactId)) {
-            throw new \RuntimeException('Unable to load the existing contact for ' . $person['full_name'] . '.');
-        }
-
-        if (!$contact->bind([
-                    'name' => $person['full_name'],
-                    'alias' => strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $person['full_name']))) . '-' . $userId,
-                    'con_position' => implode('+', $person['roles']),
-                    'email_to' => $person['email'],
-                    'user_id' => $userId,
-                    'catid' => $categoryId,
-                    'published' => 1,
-                    'access' => 1,
-                    'language' => '*',
-                    'params' => '{}',
-                    'metadata' => '{}',
-                ]) || !$contact->check() || !$contact->store()) {
-            throw new \RuntimeException('Unable to save the contact for ' . $person['full_name'] . ': ' . $contact->getError());
-        }
     }
 
     private function saveMailmanAccess(array $people, array $users): void {

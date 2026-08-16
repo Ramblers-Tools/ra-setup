@@ -6,14 +6,18 @@
       type="text"
       label="Email domain"
       description="Maximum 12 characters"
+      filter="string"
       maxlength="12"
       required="true"
     />
     <field
-      name="failure_email"
-      type="email"
-      label="Delivery failure email address"
-      validate="email"
+      name="contact_id"
+      type="sql"
+      label="Who is to be notified of delivery exceptions"
+      query="SELECT u.id AS value, c.name AS text FROM #__users AS u INNER JOIN #__contact_details AS c ON c.user_id = u.id UNION SELECT 0, '--Select Contact --' ORDER BY text"
+      key_field="value"
+      value_field="text"
+      default="0"
       required="true"
     />
   </fieldset>
