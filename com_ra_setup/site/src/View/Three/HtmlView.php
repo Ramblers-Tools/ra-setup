@@ -12,6 +12,7 @@ use \Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 
 class HtmlView extends BaseHtmlView implements CurrentUserInterface {
 
+    protected $admin;    
     protected $app;
     protected $default_group;
     protected $form;
@@ -24,15 +25,13 @@ class HtmlView extends BaseHtmlView implements CurrentUserInterface {
         $this->app = Factory::getApplication();
         $app = Factory::getApplication();
         $this->user = $this->app->getSession()->get('user');
-        //       var_dump($this->user);
-        //      die('id=' . $this->user->id);
-        $this->setupHelper = new SetupHelper;
         $this->toolsHelper = new ToolsHelper;
         $this->setupHelper = new SetupHelper;
         $this->setupHelper->assertCanRunWizard();
         $this->form = $this->get('Form');
 		$params = ComponentHelper::getParams('com_ra_tools');
 		$this->default_group = $params->get('default_group'); 
+        $this->admin =$this->app->input->getInt('admin', '');
         if (!$this->form) {
             throw new \RuntimeException('Unable to load the Step 3 form.', 500);
         }

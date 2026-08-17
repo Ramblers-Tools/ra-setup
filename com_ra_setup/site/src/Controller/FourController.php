@@ -61,6 +61,7 @@ class FourController extends BaseController
         try {
             $db->transactionStart();
             $missingExtensions = $model->updateExtensionGroups($data);
+            $model->updateOptionalMenuPublication($data);
             $db->transactionCommit();
         } catch (\Throwable $e) {
             $db->transactionRollback();

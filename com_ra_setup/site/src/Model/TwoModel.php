@@ -7,6 +7,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\FormModel;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Registry\Registry;
 
 class TwoModel extends FormModel {
 
@@ -81,10 +82,21 @@ class TwoModel extends FormModel {
         return true;
     }
 
+    public function setFacebookModulesPublished(bool $published): void {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+                ->update($db->quoteName('#__modules'))
+                ->set($db->quoteName('published') . ' = ' . ($published ? 1 : 0))
+                ->where($db->quoteName('module') . ' = ' . $db->quote('mod_ra_facebook'))
+                ->where($db->quoteName('client_id') . ' = 0');
+        $db->setQuery($query)->execute();
+    }
+
     protected function loadFormData() {
         $app = Factory::getApplication();
         $data = $app->getUserState('com_ra_setup.two.data', []);
         $article = $this->getHomeArticle();
+        $facebookParams = $this->getFacebookModuleParams();
 
         if ($article) {
             if (trim((string) ($data['title'] ?? '')) === '') {
@@ -96,9 +108,36 @@ class TwoModel extends FormModel {
             }
         }
 
-        $data['facebook'] = (string) ($data['facebook'] ?? '0');
+        if (!array_key_exists('facebook_link', $data)) {
+            $data['facebook_link'] = trim((string) $facebookParams->get('url', ''));
+        }
+
+        if (!array_key_exists('facebook_text', $data)) {
+            $data['facebook_text'] = trim((string) $facebookParams->get('caption', 'Join us on Facebook!'));
+        }
+
+        if (!array_key_exists('facebook', $data)) {
+            $data['facebook'] = $data['facebook_link'] === '' ? '0' : '1';
+        } else {
+            $data['facebook'] = (string) $data['facebook'];
+        }
 
         return $data;
+    }
+
+    private function getFacebookModuleParams(): Registry {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+                ->select($db->quoteName('params'))
+                ->from($db->quoteName('#__modules'))
+                ->where($db->quoteName('module') . ' = ' . $db->quote('mod_ra_facebook'))
+                ->where($db->quoteName('client_id') . ' = 0')
+                ->order($db->quoteName('published') . ' DESC')
+                ->order($db->quoteName('ordering') . ' ASC')
+                ->order($db->quoteName('id') . ' ASC');
+        $params = $db->setQuery($query, 0, 1)->loadResult();
+
+        return new Registry(is_string($params) ? $params : '');
     }
 
 }

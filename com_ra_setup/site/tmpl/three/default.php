@@ -3,28 +3,45 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\HTML\HTMLHelper;
-
-?>
-<div class="uk-card uk-card-default uk-card-body">
-    <h2>RA Setup Step Three: Walks programmes</h2>
-    <div class="alert alert-info">
-        The home organisation, neighbouring organisations and save operations will be added when this stub is implemented.
-    </div>
-
-    <?php 
-    $rows = $this->setupHelper->getNearestOrganisations($this->default_group , 8,'Y');
-    $sql =  'SELECT note, title, published FROM #__menu ';
-    $sql .= 'WHERE note <> "" AND title <> "" ';
-    $sql .= 'ORDER BY note, title, published ';
-    $this->toolsHelper->showQuery($sql);
-    echo $this->form->renderFieldset('setup'); 
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')->useScript('form.validate');
+echo '<div class="uk-card uk-card-default uk-card-body">';
+echo '<h2>RA Setup Step Three: Walks programmes</h2>';
+if ($this->admin == 'Y') {
+    echo '<div class="alert alert-info">';
+    echo 'This step will only work as expected if your site was derived from the template provided by Ramblers Tools.<br>'
+    . ' If you are using a different template, you will need to create a menu item of type "Single programme" '
+    . 'for each of your walks programmes, and define the "Options" to suit your requirements.';
+    echo '</div>';
+}
+echo '<div class="uk-card uk-card-default uk-card-body">';
     ?>
 
-    <form action="index.php?option=com_ra_setup" method="post" class="d-inline">
-        <button type="submit" name="task" value="three.previous" class="btn btn-secondary">Previous</button>
+    <form
+        id="three-form"
+        action="index.php?option=com_ra_setup"
+        method="post"
+        class="form-validate form-horizontal"
+    >
+        <?php echo $this->form->renderFieldset('setup'); ?>
+
+        <button
+            type="submit"
+            name="task"
+            value="three.previous"
+            class="link-button btn-secondary"
+            formnovalidate
+        >Previous</button>
+        <button type="submit" name="task" value="three.update" class="validate link-button btn-primary">Update and continue</button>
+
         <input type="hidden" name="option" value="com_ra_setup">
         <?php echo HTMLHelper::_('form.token'); ?>
     </form>
-    <a class="btn btn-primary" href="index.php?option=com_ra_setup&amp;view=four">Next</a>
 </div>
 <?php
+    $rows = $this->toolsHelper->getNearestOrganisations($this->default_group , 6,'Y');
+
+    $sql =  'SELECT title, alias, note, params, published FROM #__menu ';
+    $sql .= 'WHERE link like "%view=programme%" AND params like "%single%" ';
+    $sql .= 'ORDER BY title, alias, note ';
+    $this->toolsHelper->showQuery($sql);

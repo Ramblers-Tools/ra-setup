@@ -36,6 +36,13 @@ $wa->registerAndUseStyle('ramblers', 'com_ra_tools/ramblers.css');
         <button type="submit" name="task" value="four.update" class="validate btn btn-primary">Update and continue</button>
 
         <input type="hidden" name="option" value="com_ra_setup">
-        <?php echo HTMLHelper::_('form.token'); ?>
+        <?php 
+        echo HTMLHelper::_('form.token');  
+        echo '<div class="alert alert-info">';
+        echo 'For more details, read the documentation:<br>'
+    . ' RA Mailman ' . $this->toolsHelper->buildLink('https://docs.ramblers.tools/ra-mailman','here',true) . '<br>'
+    . ' RA Events ' . $this->toolsHelper->buildLink('https://docs.ramblers.tools/ra-events','here',true) . '<br>' . '<br>';
+    echo '</div>';
+    ?>
     </form>
 </div>

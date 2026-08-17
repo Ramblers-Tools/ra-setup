@@ -18,9 +18,9 @@ use Joomla\CMS\HTML\HTMLHelper;
     </p>
 
     <form action="index.php?option=com_ra_setup" method="post">
-        <button type="submit" name="task" value="eight.previous" class="btn btn-secondary">Previous</button>
-        <button type="submit" name="task" value="eight.next" class="btn btn-primary">Next</button>
-        <button type="submit" name="task" value="eight.cancel" class="btn btn-danger">Cancel</button>
+        <button type="submit" name="task" value="eight.previous" class="link-button btn-secondary">Previous</button>
+        <button type="submit" name="task" value="eight.next" class="link-button btn-primary">Next</button>
+        <button type="submit" name="task" value="eight.cancel" class="link-button button-p0110">Cancel</button>
 
         <input type="hidden" name="option" value="com_ra_setup">
         <?php echo HTMLHelper::_('form.token'); ?>

@@ -52,6 +52,7 @@ class TwoController extends BaseController
 
         if (($submittedData['facebook'] ?? '0') !== '1') {
             $form->removeField('facebook_link');
+            $form->removeField('facebook_text');
         }
 
         $data = $model->validate($form, $submittedData);
@@ -65,8 +66,18 @@ class TwoController extends BaseController
             return $this->returnToForm($submittedData);
         }
 
-        if (($submittedData['facebook'] ?? '0') === '1' && trim($data['facebook_link'] ?? '') === '') {
-            $this->app->enqueueMessage('The Facebook link is required when a link is requested.', 'warning');
+        $facebookEnabled = ($submittedData['facebook'] ?? '0') === '1';
+        $facebookLink = trim((string) ($data['facebook_link'] ?? $submittedData['facebook_link'] ?? ''));
+        $facebookText = trim((string) ($data['facebook_text'] ?? $submittedData['facebook_text'] ?? ''));
+
+        if ($facebookEnabled && ($facebookLink === '' || $facebookText === '')) {
+            if ($facebookLink === '') {
+                $this->app->enqueueMessage('The Facebook link is required when a link is requested.', 'warning');
+            }
+
+            if ($facebookText === '') {
+                $this->app->enqueueMessage('The Facebook text is required when a link is requested.', 'warning');
+            }
 
             return $this->returnToForm($submittedData);
         }
@@ -96,6 +107,15 @@ class TwoController extends BaseController
             if (!$helper->updateComponentParams('com_ra_tools', ['website' => Uri::root()])) {
                 throw new \RuntimeException('Unable to update the RA Tools website parameter.');
             }
+
+            if (!$helper->updateModuleParams('mod_ra_facebook', [
+                'url' => $facebookEnabled ? $facebookLink : '',
+                'caption' => $facebookText,
+            ])) {
+                throw new \RuntimeException('Unable to update RA Facebook parameters.');
+            }
+
+            $model->setFacebookModulesPublished($facebookEnabled);
 
             $db->transactionCommit();
         } catch (\Throwable $e) {

@@ -17,13 +17,13 @@
       name="mailshot_senders"
       type="textarea"
       label="Members who can send mailshots"
-      description="Displayed when RA Mailman is installed; enter multiple names separated by commas"
+      description="Enter multiple names separated by commas"
     />
     <field
       name="event_creators"
       type="textarea"
       label="Members who can create events"
-      description="Displayed when RA Events is installed; enter multiple names separated by commas"
+      description="Enter multiple names separated by commas"
     />
   </fieldset>
 </form>

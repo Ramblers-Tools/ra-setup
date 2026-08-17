@@ -97,6 +97,26 @@ class FourModel extends FormModel
         return array_values(array_unique($missingExtensions));
     }
 
+    public function updateOptionalMenuPublication(array $data): void
+    {
+        $menuTitles = [
+            'mailman' => 'Mailman',
+            'events' => 'Events',
+        ];
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        foreach ($menuTitles as $field => $title) {
+            $published = ($data[$field] ?? '0') === '1' ? 1 : 0;
+
+            $query = $db->getQuery(true)
+                ->update($db->quoteName('#__menu'))
+                ->set($db->quoteName('published') . ' = ' . $published)
+                ->where($db->quoteName('client_id') . ' = 0')
+                ->where($db->quoteName('title') . ' = ' . $db->quote($title));
+            $db->setQuery($query)->execute();
+        }
+    }
+
     protected function loadFormData()
     {
         $app = Factory::getApplication();

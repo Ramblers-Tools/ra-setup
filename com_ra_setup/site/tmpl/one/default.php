@@ -20,6 +20,8 @@ $wa->useScript('keepalive')
             <?php
             //       echo $this->form->renderField('area_group');
             echo $this->form->renderField('group_code');
+            $target = 'https://staffordshireramblers.org/useful-contacts/organisation/groups.html';
+            echo 'You can look up your Group code ' . $this->toolsHelper->buildLink($target,'here',true) . '<br>';
             //       echo $this->form->renderField('area_code');
             echo $this->form->renderField('site_name');
             echo $this->form->renderField('strapline');

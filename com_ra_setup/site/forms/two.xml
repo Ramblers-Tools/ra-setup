@@ -22,7 +22,6 @@
         name="facebook"
         type="radio"
         label="Is a link to Facebook required?"
-        class="btn-group btn-group-yesno"
         default="0"
     >
         <option value="0">No</option>
@@ -34,6 +33,14 @@
         label="Facebook link"
         description="Link to your Facebook page"
         validate="url"
+        showon="facebook:1"
+    />
+    <field
+        name="facebook_text"
+        type="text"
+        label="Facebook text"
+        description="Text to be displayed for the Facebook link"
+        filter="string"
         showon="facebook:1"
     />
   </fieldset>

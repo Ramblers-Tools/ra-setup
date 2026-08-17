@@ -138,7 +138,9 @@ class SixModel extends FormModel {
 
             $users[$key] = $userId;
             $this->personHelper->saveProfile($userId, $person['full_name'], strtoupper($homeGroup));
-            $this->personHelper->saveContact($userId, $person, $categoryId);
+            $contactPerson = $person;
+            $contactPerson['roles'] = $this->normaliseContactRoles($person['roles']);
+            $this->personHelper->saveContact($userId, $contactPerson, $categoryId);
         }
 
         $warnings = [];
@@ -175,6 +177,13 @@ class SixModel extends FormModel {
         }
 
         return array_values(array_unique($warnings));
+    }
+
+    private function normaliseContactRoles(array $roles): array {
+        return array_values(array_filter(
+                        $roles,
+                        static fn($role) => !in_array(strtolower(trim((string) $role)), ['events', 'mailman'], true)
+        ));
     }
 
     private function addPerson(array &$people, string $name, array $roles): void {

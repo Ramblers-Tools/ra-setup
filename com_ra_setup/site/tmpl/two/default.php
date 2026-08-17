@@ -20,15 +20,16 @@ $wa->useScript('keepalive')
         <?php echo $this->form->renderField('body'); ?>
         <?php echo $this->form->renderField('facebook'); ?>
         <?php echo $this->form->renderField('facebook_link'); ?>
+         <?php echo $this->form->renderField('facebook_text'); ?>
 
         <button
             type="submit"
             name="task"
             value="two.previous"
-            class="btn btn-secondary"
+            class="link-button btn-secondary"
             formnovalidate
         >Previous</button>
-        <button type="submit" name="task" value="two.update" class="validate btn btn-primary">Update and continue</button>
+        <button type="submit" name="task" value="two.update" class="validate link-button btn-primary">Update and continue</button>
 
         <input type="hidden" name="option" value="com_ra_setup">
         <?php echo HTMLHelper::_('form.token'); ?>

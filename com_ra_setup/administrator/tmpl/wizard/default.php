@@ -1,7 +1,8 @@
 <?php
 /**
  * 05/08/26 CB created
- * 15/08/26 CB add final confirnation, open links in new window
+ * 15/08/26 CB open links in new window
+ * 17/08/26 CB pass parameter to step 3
  */
 defined('_JEXEC') or die;
 
@@ -24,18 +25,14 @@ $this->wa->registerAndUseStyle('ramblers', 'com_ra_tools/ramblers.css');
 $this->wa->registerAndUseStyle('dashboard', 'com_ra_tools/dashboard.css');
 
 $back = 'administrator/index.php?option=com_ra_tools&view=dashboard';
-/*
-  -
-  -   Committee members - roles
-  -   Email configuration
- */
+
 ?>
 
 <?php
 $reports = [
     'System setup' => 'index.php?option=com_ra_setup&view=one',
     'Home page' => 'index.php?option=com_ra_setup&view=two',
-    'Walks programmes ' => 'index.php?option=com_ra_setup&view=three',
+    'Walks programmes ' => 'index.php?option=com_ra_setup&view=three&admin=Y',
     'Optional components' => 'index.php?option=com_ra_setup&view=four',
     'Committee members' => 'index.php?option=com_ra_setup&view=five',
 ];

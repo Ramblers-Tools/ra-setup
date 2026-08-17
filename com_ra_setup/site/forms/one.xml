@@ -39,7 +39,7 @@
         name="strapline"
         type="textfield"
         label="Strapline"
-        description="Line of text below the Site name in the pageheader"
+        description="Line of text below the Site name in the page header"
         required="true"
         default=""
     />
