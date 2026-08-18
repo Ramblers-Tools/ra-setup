@@ -39,9 +39,6 @@ echo '<div class="uk-card uk-card-default uk-card-body">';
     </form>
 </div>
 <?php
-    $rows = $this->toolsHelper->getNearestOrganisations($this->default_group , 6,'Y');
+    $this->toolsHelper->getNearestOrganisations($this->default_group , 6,'Y');
 
-    $sql =  'SELECT title, alias, note, params, published FROM #__menu ';
-    $sql .= 'WHERE link like "%view=programme%" AND params like "%single%" ';
-    $sql .= 'ORDER BY title, alias, note ';
-    $this->toolsHelper->showQuery($sql);
+
