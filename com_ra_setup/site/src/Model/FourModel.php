@@ -23,10 +23,13 @@ class FourModel extends FormModel
                 'folder' => 'console',
             ],
         ],
+        'members' => [
+            ['name' => 'com_ra_members', 'type' => 'component', 'element' => 'com_ra_members'],
+            ['name' => 'plg_ra_members', 'type' => 'plugin', 'element' => 'ra_members', 'folder' => 'console'],
+        ],
         'mailman' => [
             ['name' => 'com_ra_mailman', 'type' => 'component', 'element' => 'com_ra_mailman'],
             ['name' => 'com_ra_delivery', 'type' => 'component', 'element' => 'com_ra_delivery'],
-            ['name' => 'com_ra_members', 'type' => 'component', 'element' => 'com_ra_members'],
             ['name' => 'plg_ra_mailman', 'type' => 'plugin', 'element' => 'ra_mailman', 'folder' => 'console'],
             ['name' => 'plg_ra_delivery', 'type' => 'plugin', 'element' => 'ra_delivery', 'folder' => 'console'],
         ],
@@ -102,6 +105,7 @@ class FourModel extends FormModel
         $menuTitles = [
             'mailman' => 'Mailman',
             'events' => 'Events',
+            'members' => 'Members',
         ];
         $db = Factory::getContainer()->get(DatabaseInterface::class);
 

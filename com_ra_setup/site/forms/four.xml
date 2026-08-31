@@ -24,6 +24,17 @@
       <option value="1">Required</option>
     </field>
     <field
+      name="members"
+      type="radio"
+      label="RA Members"
+      description="RA Members allows you to import membership data and report on it."
+      default="0"
+      required="true"
+    >
+      <option value="0">Not required</option>
+      <option value="1">Required</option>
+    </field>
+    <field
       name="sso"
       type="radio"
       label="RA SSO"

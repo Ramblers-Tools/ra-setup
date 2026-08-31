@@ -23,7 +23,9 @@ $wa->registerAndUseStyle('ramblers', 'com_ra_tools/ramblers.css');
         ?>
 
         <p class="form-text">
-            Selecting RA Events also enables its module and plugins. Selecting RA Mailman also enables RA Members and the required plugins.
+            Selecting RA Events also enables its module and plugins, and also enables RA Treasurer.
+            Selecting RA Members also enables its plugin.
+            Selecting RA Mailman also enables its plugins.
         </p>
 
         <button
@@ -41,6 +43,7 @@ $wa->registerAndUseStyle('ramblers', 'com_ra_tools/ramblers.css');
         echo '<div class="alert alert-info">';
         echo 'For more details, read the documentation:<br>'
     . ' RA Mailman ' . $this->toolsHelper->buildLink('https://docs.ramblers.tools/ra-mailman','here',true) . '<br>'
+    . ' RA Members ' . $this->toolsHelper->buildLink('https://docs.ramblers.tools/ra-members','here',true) . '<br>'
     . ' RA Events ' . $this->toolsHelper->buildLink('https://docs.ramblers.tools/ra-events','here',true) . '<br>' . '<br>';
     echo '</div>';
     ?>

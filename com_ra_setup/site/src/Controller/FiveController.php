@@ -60,7 +60,6 @@ class FiveController extends BaseController
         }
 
         $this->app->setUserState('com_ra_setup.five.data', $data);
-        $this->app->setUserState('com_ra_setup.six.form', null);
         $this->setRedirect('index.php?option=com_ra_setup&view=six');
 
         return true;

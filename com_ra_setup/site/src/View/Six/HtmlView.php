@@ -11,12 +11,18 @@ class HtmlView extends BaseHtmlView
 {
     protected $form;
     protected $people;
+    protected $mailmanEnabled;
+    protected $eventsEnabled;
+    protected $membersEnabled;
 
     public function display($tpl = null)
     {
         (new SetupHelper)->assertCanRunWizard();
         $this->form = $this->get('Form');
         $this->people = $this->get('People');
+        $this->mailmanEnabled = $this->get('MailmanEnabled');
+        $this->eventsEnabled = $this->get('EventsEnabled');
+        $this->membersEnabled = $this->get('MembersEnabled');
 
         if (!$this->form) {
             throw new \RuntimeException('Unable to load the Step 6 form.', 500);

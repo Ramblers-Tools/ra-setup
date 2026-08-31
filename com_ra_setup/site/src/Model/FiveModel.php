@@ -4,7 +4,6 @@ namespace Ramblers\Component\Ra_setup\Site\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\FormModel;
 use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
@@ -13,31 +12,11 @@ class FiveModel extends FormModel
 {
     public function getForm($data = [], $loadData = true)
     {
-        $form = $this->loadForm(
+        return $this->loadForm(
             'com_ra_setup.five',
             'five',
             ['control' => 'jform', 'load_data' => $loadData]
         );
-
-        if ($form && !$this->isMailmanEnabled()) {
-            $form->removeField('mailshot_senders');
-        }
-
-        if ($form && !$this->isEventsEnabled()) {
-            $form->removeField('event_creators');
-        }
-
-        return $form;
-    }
-
-    public function isMailmanEnabled(): bool
-    {
-        return ComponentHelper::isEnabled('com_ra_mailman');
-    }
-
-    public function isEventsEnabled(): bool
-    {
-        return ComponentHelper::isEnabled('com_ra_events');
     }
 
     public function sanitise(array $data): array
@@ -68,13 +47,7 @@ class FiveModel extends FormModel
             $clean[$field] = $value;
         }
 
-        foreach (['committee_members', 'mailshot_senders', 'event_creators'] as $field) {
-            if (($field === 'mailshot_senders' && !$this->isMailmanEnabled())
-                || ($field === 'event_creators' && !$this->isEventsEnabled())) {
-                $clean[$field] = '';
-                continue;
-            }
-
+        foreach (['committee_members'] as $field) {
             $value = trim((string) ($data[$field] ?? ''));
             $names = $value === '' ? [] : array_map([$this, 'normaliseName'], explode(',', $value));
 
@@ -112,8 +85,6 @@ class FiveModel extends FormModel
             'treasurer' => '',
             'walks_coordinator' => '',
             'committee_members' => '',
-            'mailshot_senders' => '',
-            'event_creators' => '',
         ];
         $sql = 'SELECT c.name, c.con_position FROM #__contact_details AS c '
             . 'INNER JOIN #__categories AS cat ON cat.id = c.catid '
@@ -133,7 +104,7 @@ class FiveModel extends FormModel
             'treasurer' => 'treasurer',
             'walks coordinator' => 'walks_coordinator',
         ];
-        $lists = ['committee_members' => [], 'mailshot_senders' => [], 'event_creators' => []];
+        $committeeMembers = [];
 
         foreach ($rows as $row) {
             $name = $this->normaliseName((string) $row->name);
@@ -144,23 +115,17 @@ class FiveModel extends FormModel
                 if (isset($roleFields[$role])) {
                     $data[$roleFields[$role]] = $name;
                     $hasNamedCommitteeRole = true;
-                } elseif ($role === 'mailman') {
-                    $lists['mailshot_senders'][] = $name;
-                } elseif ($role === 'events') {
-                    $lists['event_creators'][] = $name;
                 } elseif ($role === 'committee') {
                     $hasNamedCommitteeRole = true;
                 }
             }
 
             if ($hasNamedCommitteeRole && empty(array_intersect($roles, array_keys($roleFields)))) {
-                $lists['committee_members'][] = $name;
+                $committeeMembers[] = $name;
             }
         }
 
-        foreach ($lists as $field => $names) {
-            $data[$field] = implode(', ', array_values(array_unique($names)));
-        }
+        $data['committee_members'] = implode(', ', array_values(array_unique($committeeMembers)));
 
         return $data;
     }

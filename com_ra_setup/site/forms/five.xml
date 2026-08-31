@@ -13,17 +13,5 @@
       label="Other committee members"
       description="Enter multiple names separated by commas"
     />
-    <field
-      name="mailshot_senders"
-      type="textarea"
-      label="Members who can send mailshots"
-      description="Enter multiple names separated by commas"
-    />
-    <field
-      name="event_creators"
-      type="textarea"
-      label="Members who can create events"
-      description="Enter multiple names separated by commas"
-    />
   </fieldset>
 </form>

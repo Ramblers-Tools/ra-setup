@@ -18,6 +18,14 @@ class Com_Ra_setupInstallerScript
     private $minimumPHPVersion = '7.4.0';
     private $minimumToolsVersion = '4.0.9';
 
+    private function fail(string $message): bool
+    {
+        Factory::getApplication()->enqueueMessage($message, 'error');
+        Log::add($message, Log::ERROR, 'jerror');
+
+        return false;
+    }
+
     function buildButton($url, $text, $newWindow = 0, $colour = '') {
         if ($colour == '') {
             $colour = 'sunrise';
@@ -47,8 +55,7 @@ class Com_Ra_setupInstallerScript
             return true;
         }
         if (($mode == 'U') AND ($count == 0)) {
-            echo 'Field ' . $column . ' not found in ' . $table_name . '<br>';
-            return false;
+            return $this->fail('Installer could not update missing field ' . $table_name . '.' . $column . '.');
         }
 
         $sql = 'ALTER TABLE ' . $table_name . ' ';
@@ -175,54 +182,28 @@ class Com_Ra_setupInstallerScript
         }
 
         if (version_compare(PHP_VERSION, $this->minimumPHPVersion, '<')) {
-            Log::add(
-                Text::sprintf('JLIB_INSTALLER_MINIMUM_PHP', $this->minimumPHPVersion),
-                Log::WARNING,
-                'jerror'
-            );
-
-            return false;
+            return $this->fail(Text::sprintf('JLIB_INSTALLER_MINIMUM_PHP', $this->minimumPHPVersion));
         }
 
         if (version_compare(JVERSION, $this->minimumJoomlaVersion, '<')) {
-            Log::add(
-                Text::sprintf('JLIB_INSTALLER_MINIMUM_JOOMLA', $this->minimumJoomlaVersion),
-                Log::WARNING,
-                'jerror'
-            );
-
-            return false;
+            return $this->fail(Text::sprintf('JLIB_INSTALLER_MINIMUM_JOOMLA', $this->minimumJoomlaVersion));
         }
 
         if (!ComponentHelper::isEnabled('com_ra_tools', true)) {
-            Factory::getApplication()->enqueueMessage(
-                'RA Setup requires RA Tools (com_ra_tools) to be installed and enabled.',
-                'error'
-            );
-
-            return false;
+            return $this->fail('RA Setup requires RA Tools (com_ra_tools) to be installed and enabled.');
         }
 
         $toolsVersions = $this->getVersions('com_ra_tools');
 
         if ($toolsVersions === false) {
-            Factory::getApplication()->enqueueMessage(
-                'Unable to determine the installed version of RA Tools.',
-                'error'
-            );
-
-            return false;
+            return $this->fail('Unable to determine the installed version of RA Tools.');
         }
 
         $this->reportVersions('RA Tools', $toolsVersions);
 
         if (version_compare($toolsVersions->component, $this->minimumToolsVersion, '<')) {
-            Factory::getApplication()->enqueueMessage(
-                'RA Setup requires RA Tools version ' . $this->minimumToolsVersion . ' or later.',
-                'error'
-            );
-
-            return false;
+            return $this->fail('RA Setup requires RA Tools version ' . $this->minimumToolsVersion
+                    . ' or later; found ' . $toolsVersions->component . '.');
         }
 
         if ($type === 'update') {

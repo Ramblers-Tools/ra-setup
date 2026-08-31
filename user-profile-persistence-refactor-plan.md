@@ -14,19 +14,6 @@ This document is intended to be sufficient context for a future development
 session. It covers a cross-repository refactor; it is not an instruction to
 implement all changes in one commit or release.
 
-## Immediate defect versus refactor
-
-The immediate Step 6 defect in `com_ra_setup` must remain a small, independent
-change:
-
-- `SixModel::saveProfile()` must not accept an email argument.
-- Neither the insert nor update of `#__ra_profiles` may reference an `email`
-  column.
-- Email remains on `#__users` and the profile is linked by
-  `#__ra_profiles.id = #__users.id`.
-
-Apply and verify that correction before starting this refactor. Do not make the
-production defect depend on completion of the cross-component work below.
 
 ## Repositories and current code
 
@@ -89,8 +76,13 @@ Primary existing file:
 This is an older parallel implementation of user/profile creation. It confirms
 that persistence is a shared concern, but it also uses mutable state, direct SQL,
 numeric group IDs, and unrelated notification/purge behaviour. Do not extend it
-with another conditional code path. Introduce a focused service and migrate
-callers deliberately.
+with another conditional code path. 
+
+- `com_ra_tools/site/src/Helpers/UPersonHelper.php`
+
+A newly developed helper that is currently used exclusively from com_ra_setup.
+This should be developed further as required, with the aim of migratig com_ra_mailman
+and com_ra_members to also use it .
 
 ## Data ownership and invariants
 

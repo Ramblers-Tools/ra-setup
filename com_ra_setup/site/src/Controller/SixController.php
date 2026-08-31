@@ -74,7 +74,7 @@ class SixController extends FormController {
 
         try {
             $this->db->transactionStart();
-            $warnings = $model->persistPeople($people);
+            $result = $model->persistPeople($people);
             $this->db->transactionCommit();
         } catch (\Throwable $e) {
             $this->db->transactionRollback();
@@ -85,7 +85,11 @@ class SixController extends FormController {
             return false;
         }
 
-        foreach ($warnings as $warning) {
+        foreach ($result['messages'] as $message) {
+            $this->app->enqueueMessage($message, 'message');
+        }
+
+        foreach ($result['warnings'] as $warning) {
             $this->app->enqueueMessage($warning, 'warning');
         }
 
