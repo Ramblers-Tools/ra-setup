@@ -3,6 +3,7 @@
  * 05/08/26 CB created
  * 15/08/26 CB open links in new window
  * 17/08/26 CB pass parameter to step 3
+ * 01/09/26 CB remove option to configure emails
  */
 defined('_JEXEC') or die;
 
@@ -36,10 +37,6 @@ $reports = [
     'Optional components' => 'index.php?option=com_ra_setup&view=four',
     'Committee members' => 'index.php?option=com_ra_setup&view=five',
 ];
-
-if (ComponentHelper::isEnabled('com_ra_mailman')) {
-    $reports['Email configuration'] = 'index.php?option=com_ra_setup&view=seven';
-}
 
 if (!(new SetupHelper)->isWizardCompleted()) {
     $reports['Final confirmation'] = 'index.php?option=com_ra_setup&view=eight';

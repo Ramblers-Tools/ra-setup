@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
+    <fieldset name="phase1" label="Email configuration">
+        <!-- field 
+            name="note1" 
+            type="note" 
+            label="The master API key will be overwitten in the final step of the Wizard"
+        / -->
+        <field
+            name="email_limit"
+            type="text"
+            filter="integer"
+            label="Max emails per month"
+            description="Maximum number of emails that can be sent per month per Group"
+        /> 
+    </fieldset>
+
     <fieldset
         name="permissions"
         label="JCONFIG_PERMISSIONS_LABEL"
