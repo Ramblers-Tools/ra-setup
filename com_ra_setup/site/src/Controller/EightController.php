@@ -48,7 +48,6 @@ class EightController extends BaseController
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $emailProvisioned = false;
         $provisioning = null;
-        $provisioningWarning = null;
 
         try {
             if (ComponentHelper::isEnabled('com_ra_mailman')) {
@@ -56,21 +55,14 @@ class EightController extends BaseController
                 $emailProvisioned = true;
             }
         } catch (\Throwable $e) {
-            if (stripos($e->getMessage(), 'email address already exists') !== false) {
-                $emailProvisioned = true;
-                $provisioningWarning = 'SMTP2GO could not create the sub-account because its sub-account email address already exists. '
-                    . 'Complete or correct the SMTP2GO setup manually before sending email. Step 8 cannot be rerun; '
-                    . 'a knowledgeable administrator can recover the setup interactively on the SMTP2GO website.';
-            } else {
-                $this->app->enqueueMessage($e->getMessage(), 'error');
-                $this->setRedirect(
-                    $model->isProvisioningGuardPresent()
-                        ? Uri::root()
-                        : 'index.php?option=com_ra_setup&view=eight'
-                );
+            $this->app->enqueueMessage($e->getMessage(), 'error');
+            $this->setRedirect(
+                $model->isProvisioningGuardPresent()
+                    ? Uri::root()
+                    : 'index.php?option=com_ra_setup&view=eight'
+            );
 
-                return false;
-            }
+            return false;
         }
 
         try {
@@ -106,10 +98,6 @@ class EightController extends BaseController
         }
 
         $this->app->enqueueMessage($message, 'success');
-
-        if ($provisioningWarning !== null) {
-            $this->app->enqueueMessage($provisioningWarning, 'warning');
-        }
 
         try {
             $webmasterWarning = $model->getWebmasterSuperUserWarning();

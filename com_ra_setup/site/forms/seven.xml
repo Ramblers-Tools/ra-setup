@@ -7,6 +7,7 @@
       label="Sub account"
       description="Name for the new SMTP2GO sub-account"
       filter="string"
+      maxlength="100"
       required="true"
     />
     <field

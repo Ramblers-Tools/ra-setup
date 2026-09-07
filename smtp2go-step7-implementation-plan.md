@@ -14,8 +14,9 @@ gives final confirmation in Step 8, create the SMTP2GO sub-account, create its
 restricted API key, register the site's hostname as a sender domain, and update
 the configured `#__ra_api_sites` record to use the generated key.
 
-This document is a design and implementation plan only. No SMTP2GO calls or
-provisioning changes have yet been implemented.
+The provisioning flow is implemented. Exception retrieval and a single-sender
+end-to-end test have been confirmed; sender-domain/DNS testing and automated
+regression coverage remain outstanding.
 
 ## Provisioning context
 
@@ -143,7 +144,6 @@ Initial payload, subject to the decisions below:
 ```json
 {
   "fullname": "<validated Step 7 sub-account name>",
-  "subaccount_email": "<current Webmaster email>",
   "limit": "<configured com_ra_setup email_limit>",
   "dedicated_ip": false,
   "archiving": false,
@@ -154,10 +154,9 @@ Initial payload, subject to the decisions below:
 
 Official reference: [Add a subaccount](https://developers.smtp2go.com/reference/add-subaccount).
 
-The Webmaster is identified by user ID in Steps 5 and 6. Resolve that user's
-current email immediately before provisioning and use it as
-`subaccount_email`. Dedicated IP, archiving, 2FA enforcement, and SMS are
-confirmed disabled.
+The Webmaster is identified by user ID in Steps 5 and 6 for committee
+validation, but the optional `subaccount_email` is intentionally omitted.
+Dedicated IP, archiving, 2FA enforcement, and SMS are confirmed disabled.
 
 ### Find an existing sub-account
 
@@ -341,8 +340,9 @@ Required decision flow:
 9. When Step 8 is confirmed, atomically check for and create the durable
    `#__ra_control.record_type = 3` one-shot guard before sending the first
    mutating SMTP2GO request. If the record already exists, throw an exception.
-10. Create the sub-account using the saved name,
-   current Webmaster email, and configured RA Setup email limit.
+10. Create the sub-account using the saved name and configured RA Setup email
+    limit. The optional `subaccount_email` field is deliberately omitted; the
+    Webmaster's address is not registered with SMTP2GO by this wizard.
 11. Capture and retain the returned unique SMTP2GO sub-account ID.
 12. Create the restricted sub-account API key and immediately capture its
    unmasked key.
@@ -473,8 +473,8 @@ Use a fake HTTP transport and fixture responses to cover:
   permissions;
 - sender-domain URL parsing, hostname canonicalisation, request construction,
   `subaccount_id`, and `data.domains` response parsing;
-- Webmaster lookup from Steps 5/6 and use of the current email address as
-  `subaccount_email`;
+- Webmaster lookup from Steps 5/6 for committee validation; no Webmaster email
+  is sent as `subaccount_email`;
 - disabled dedicated IP, archiving, 2FA enforcement, and SMS options;
 - malformed JSON and missing `data`, sub-account ID, API key, or domain result;
 - 400, 401, 402, 429, and 5xx responses;
@@ -523,11 +523,26 @@ Cover:
 ### Manual provider test
 
 Use a non-production SMTP2GO master account or an agreed disposable namespace.
-Verify the actual current response property names for the sub-account and key
-calls, inspect the generated key permissions, register a disposable sender
-domain, inspect the returned DNS setup records, send one test email, query
-activity, test collision and partial-failure recovery, and then clean up all
-remote test resources.
+The sub-account, API key, single-sender verification, test send, and activity
+exception retrieval have been confirmed. Still outstanding are sender-domain
+and combined-registration tests, inspection of returned DNS setup records,
+collision and partial-failure recovery tests, and cleanup of all remote test
+resources.
+
+### Outstanding as of 7 September 2026
+
+The following items remain outstanding:
+
+1. Test sender-domain registration, including domain-only registration,
+   combined single-sender and domain registration, DNS/CNAME publication, and
+   subsequent verification.
+2. Test collision handling when the proposed sub-account name already exists.
+3. Test partial-failure recovery after API-key creation, sender-domain
+   registration, and local database persistence failures, including cleanup and
+   system-log results for compensating actions.
+4. Add automated unit and integration tests covering response parsing,
+   restricted API-key permissions, validation failures, guard/concurrency
+   behaviour, secret redaction, and cleanup paths.
 
 ## Acceptance criteria
 
@@ -539,8 +554,8 @@ remote test resources.
   notification/Webmaster details without modifying SMTP2GO; it never clears the
   Step 8 guard or re-enables provisioning.
 - A valid Step 8 confirmation creates exactly one SMTP2GO sub-account using the
-  configured RA Setup email limit and the current Webmaster email from Steps
-  5/6; paid and optional features remain disabled.
+  configured RA Setup email limit, without registering the Webmaster email;
+  paid and optional features remain disabled.
 - Exactly one usable sub-account API key is associated with the successful local
   configuration and it has only `/email/send` and `/activity/search`
   permissions.
@@ -574,15 +589,19 @@ remote test resources.
 ## Remaining implementation input
 
 The authenticated SMTP2GO response shapes for sub-account creation and API-key
-creation will be supplied later. Do not finalise those DTO parsers until the
-exact paths of the returned sub-account ID and unmasked API key have been
-confirmed.
+creation have now been confirmed in the live test and are parsed by the
+provisioning service. Keep fixtures for those responses in the automated tests.
 
 Step 7 name validation must follow SMTP2GO's current documented permitted
-characters and constraints and return useful validation details. The value is a
-sub-account name, not the website hostname. The hostname comes from the current
-session value stored by Step 1 in `com_ra_tools.website` and is not changeable
-after provisioning.
+characters and constraints and return useful validation details. The current
+implementation accepts a conservative printable name format (letters/numbers
+with spaces, periods, underscores, parentheses, ampersands, apostrophes, and
+hyphens), requires the first character to be alphanumeric, and limits the name
+to 100 characters. The form uses `maxlength`; `filter="word"` is deliberately
+not used because it silently strips spaces and punctuation rather than
+reporting invalid input. The value is a sub-account name, not the website
+hostname. The hostname comes from the current session value stored by Step 1
+in `com_ra_tools.website` and is not changeable after provisioning.
 
 ## Primary references
 

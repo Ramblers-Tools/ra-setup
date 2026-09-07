@@ -68,6 +68,17 @@ class SevenModel extends FormModel
             throw new \InvalidArgumentException('The sub-account name must not contain control characters.');
         }
 
+        if (strlen($name) > 100) {
+            throw new \InvalidArgumentException('The sub-account name must not exceed 100 characters.');
+        }
+
+        if (!preg_match("/^[A-Za-z0-9][A-Za-z0-9 ._()&'\\-]*$/", $name)) {
+            throw new \InvalidArgumentException(
+                'The sub-account name must start with a letter or number and may contain only letters, numbers, '
+                    . 'spaces, periods, underscores, parentheses, ampersands, apostrophes, and hyphens.'
+            );
+        }
+
         $notifyUserId = (int) ($data['contact_id'] ?? 0);
 
         if ($notifyUserId < 1) {
