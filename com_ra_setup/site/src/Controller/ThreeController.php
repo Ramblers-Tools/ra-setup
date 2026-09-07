@@ -1,5 +1,7 @@
 <?php
-
+/*
+* 07/09/26 CB restrict group list to specified number of nearby groups
+*/
 namespace Ramblers\Component\Ra_setup\Site\Controller;
 
 defined('_JEXEC') or die;
@@ -56,6 +58,7 @@ class ThreeController extends BaseController
 
         try {
             $mode = $this->getSelectionMode($data);
+            $neighbour_count =  (int) ($data['neighbour_count'] ?? 0);
         } catch (\InvalidArgumentException $e) {
             $this->app->enqueueMessage($e->getMessage(), 'warning');
 
@@ -66,7 +69,7 @@ class ThreeController extends BaseController
 
         try {
             $db->transactionStart();
-            $model->updateWalkMenuItems($mode);
+            $model->updateWalkMenuItems($mode, $neighbour_count);
             $db->transactionCommit();
         } catch (\Throwable $e) {
             $db->transactionRollback();
@@ -109,8 +112,8 @@ class ThreeController extends BaseController
         if ($method === 'neighbours') {
             $count = (int) ($data['neighbour_count'] ?? 0);
 
-            if ($count < 1 || $count > 5) {
-                throw new \InvalidArgumentException('Select between 1 and 5 neighbouring groups.');
+            if ($count < 1 || $count > 6) {
+                throw new \InvalidArgumentException('Select between 1 and 6 neighbouring groups.');
             }
 
             return 'neighbours';

@@ -157,7 +157,7 @@ A "Previous" button is required to return to the previous step.
 Saving:
 
    - For every individual, a record must be created in table #__users, and in #__ra_profiles.
-   -  Webmaster will be made a Superuser
+   -  If the user record for the Webmaster is present but is not an enabled Super User, a warning message must be given. Step 6 must not attempt to make the user a Super User.
    - Chair added to groups com_ra_tools, com_ra_events, com_ra_mailman and com_ra_members
    - Chair and Membership Secretary added to groups com_ra_tools, and com_ra_members
    - All mailing lists updated with Chair as Owner

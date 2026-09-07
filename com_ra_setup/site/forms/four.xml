@@ -9,8 +9,8 @@
       default="0"
       required="true"
     >
-      <option value="0">Not required</option>
       <option value="1">Required</option>
+      <option value="0">Not required</option>
     </field>
     <field
       name="mailman"
@@ -20,8 +20,8 @@
       default="0"
       required="true"
     >
-      <option value="0">Not required</option>
       <option value="1">Required</option>
+      <option value="0">Not required</option>
     </field>
     <field
       name="members"
@@ -31,8 +31,8 @@
       default="0"
       required="true"
     >
-      <option value="0">Not required</option>
       <option value="1">Required</option>
+      <option value="0">Not required</option>
     </field>
     <field
       name="sso"

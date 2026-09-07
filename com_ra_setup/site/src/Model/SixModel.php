@@ -110,6 +110,7 @@ class SixModel extends FormModel {
             $clean[$key]['full_name'] = $name;
             $clean[$key]['email'] = $email;
             $clean[$key]['permissions'] = $this->normalisePermissions($row);
+
         }
 
         return $clean;
@@ -133,7 +134,13 @@ class SixModel extends FormModel {
                     'SELECT id FROM #__users WHERE LOWER(email) = '
                     . $db->quote(strtolower($person['email'])) . ' LIMIT 1'
             );
+
             $userId = $this->personHelper->saveUser($person['full_name'], $person['email']);
+
+            if (in_array('Webmaster', $person['roles'], true) && !$this->isEnabledSuperUser($userId)) {
+                $warnings[] = 'The Webmaster account for ' . $person['full_name']
+                        . ' is not an enabled Joomla Super User. Please update it manually.';
+            }
 
             if ($existingUserId < 1) {
                 $messages[] = 'User created: ' . $person['full_name'] . ' (' . $person['email'] . ').';
@@ -172,10 +179,6 @@ class SixModel extends FormModel {
 
         foreach ($people as $key => $person) {
             $groups = [];
-
-            if (in_array('Webmaster', $person['roles'], true)) {
-                $groups[] = 'Super Users';
-            }
 
             if (array_intersect(['Chair', 'Membership Secretary'], $person['roles'])) {
                 $groups[] = 'com_ra_tools';
@@ -242,6 +245,26 @@ class SixModel extends FormModel {
             'messages' => array_values(array_unique($messages)),
             'warnings' => array_values(array_unique($warnings)),
         ];
+    }
+
+    private function isEnabledSuperUser(int $userId): bool {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__users', 'u'))
+                ->innerJoin(
+                        $db->quoteName('#__user_usergroup_map', 'm')
+                        . ' ON ' . $db->quoteName('m.user_id') . ' = ' . $db->quoteName('u.id')
+                )
+                ->innerJoin(
+                        $db->quoteName('#__usergroups', 'g')
+                        . ' ON ' . $db->quoteName('g.id') . ' = ' . $db->quoteName('m.group_id')
+                )
+                ->where($db->quoteName('u.id') . ' = ' . $userId)
+                ->where($db->quoteName('u.block') . ' = 0')
+                ->where($db->quoteName('g.title') . ' = ' . $db->quote('Super Users'));
+
+        return (int) $db->setQuery($query)->loadResult() > 0;
     }
 
     private function normaliseContactRoles(array $roles): array {

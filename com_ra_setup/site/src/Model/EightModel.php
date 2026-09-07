@@ -253,6 +253,7 @@ class EightModel extends BaseDatabaseModel
             ->select('DISTINCT ' . implode(', ', [
                 $db->quoteName('u.id'),
                 $db->quoteName('u.email'),
+                $db->quoteName('u.name'),
             ]))
             ->from($db->quoteName('#__users', 'u'))
             ->innerJoin(
@@ -279,6 +280,33 @@ class EightModel extends BaseDatabaseModel
         }
 
         return $webmasters[0];
+    }
+
+    public function getWebmasterSuperUserWarning(): ?string
+    {
+        $webmaster = $this->getWebmaster();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from($db->quoteName('#__users', 'u'))
+            ->innerJoin(
+                $db->quoteName('#__user_usergroup_map', 'm')
+                . ' ON ' . $db->quoteName('m.user_id') . ' = ' . $db->quoteName('u.id')
+            )
+            ->innerJoin(
+                $db->quoteName('#__usergroups', 'g')
+                . ' ON ' . $db->quoteName('g.id') . ' = ' . $db->quoteName('m.group_id')
+            )
+            ->where($db->quoteName('u.id') . ' = ' . (int) $webmaster->id)
+            ->where($db->quoteName('u.block') . ' = 0')
+            ->where($db->quoteName('g.title') . ' = ' . $db->quote('Super Users'));
+
+        if ((int) $db->setQuery($query)->loadResult() > 0) {
+            return null;
+        }
+
+        return 'The Webmaster account for ' . $webmaster->name
+            . ' is not an enabled Joomla Super User. Please update it manually.';
     }
 
     private function persistProvisioningResult(

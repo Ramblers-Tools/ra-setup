@@ -5,7 +5,7 @@
 	<creationDate>7 September 2026</creationDate>
 	<copyright>Copyright (C) 2026 Ramblers. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>0.2.0</version>
+	<version>0.2.2</version>
 	<description>Installation Wizard to set up a new website</description>
 	<element>com_ra_setup</element>
 	<scriptfile>script.php</scriptfile>
@@ -20,9 +20,13 @@
 		<files folder="administrator">
 			<filename>access.xml</filename>
 			<filename>config.xml</filename>
+			<folder>languages</folder>
 			<folder>services</folder>
 			<folder>src</folder>
 			<folder>tmpl</folder>
 		</files>
+		<languages folder="administrator/languages">
+			<language tag="en-GB">en-GB/com_ra_setup.ini</language>
+		</languages>
 	</administration>
 </extension>
