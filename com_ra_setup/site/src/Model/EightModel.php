@@ -40,7 +40,7 @@ class EightModel extends BaseDatabaseModel
             );
         }
 
-        $webmaster = $this->getWebmaster();
+        $this->getWebmaster();
         $validator = new SenderRegistrationValidator();
         $registration = $validator->validate(
             (string) $deliveryParams->get('smtp2go_sender_registration', ''),
@@ -72,7 +72,7 @@ class EightModel extends BaseDatabaseModel
         $stage = 'creating the SMTP2GO sub-account';
 
         try {
-            $subaccount = $smtp->createSubaccount($subaccountName, $webmaster->email, $emailLimit);
+            $subaccount = $smtp->createSubaccount($subaccountName, $emailLimit);
             $subaccountId = trim((string) $subaccount['id']);
             $stage = 'creating the sub-account API key';
             $key = $smtp->createSubaccountApiKey(

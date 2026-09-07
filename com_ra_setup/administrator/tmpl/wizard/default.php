@@ -3,7 +3,6 @@
  * 05/08/26 CB created
  * 15/08/26 CB open links in new window
  * 17/08/26 CB pass parameter to step 3
- * 01/09/26 CB remove option to configure emails
  */
 defined('_JEXEC') or die;
 
@@ -36,6 +35,7 @@ $reports = [
     'Walks programmes ' => 'index.php?option=com_ra_setup&view=three&admin=Y',
     'Optional components' => 'index.php?option=com_ra_setup&view=four',
     'Committee members' => 'index.php?option=com_ra_setup&view=five',
+    'Email configuration' => 'index.php?option=com_ra_setup&view=seven',
 ];
 
 if (!(new SetupHelper)->isWizardCompleted()) {

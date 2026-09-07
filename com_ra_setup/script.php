@@ -178,6 +178,7 @@ class Com_Ra_setupInstallerScript
 
     public function preflight($type, $parent): bool
     {
+        Factory::getApplication()->enqueueMessage( 'RA Delivery: preflight checks', 'info');
         if ($type === 'uninstall') {
             return true;
         }
@@ -245,7 +246,7 @@ class Com_Ra_setupInstallerScript
         if ($type === 'uninstall') {
             return true;
         }
-
+        Factory::getApplication()->enqueueMessage( 'RA Delivery: postflight checks', 'info');
         $versions = $this->getVersions();
 
         if ($versions === false) {
@@ -257,6 +258,8 @@ class Com_Ra_setupInstallerScript
             $this->reportVersions('RA Setup', $versions);
         }
 
+        echo '<p><strong>RA Setup ' . ($type === 'update' ? 'update' : 'installation')
+            . ' completed.</strong></p>';
         echo '<p><strong>Useful links</strong></p>';
         echo '<p><a href="index.php?option=com_ra_setup&amp;view=wizard">Open RA Setup</a></p>';
         echo $this->buildButton('index.php?option=com_ra_tools&view=dashboard', 'Dashboard', false,'granite') . '<br>';

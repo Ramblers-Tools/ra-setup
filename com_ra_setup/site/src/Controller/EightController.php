@@ -58,7 +58,7 @@ class EightController extends BaseController
         } catch (\Throwable $e) {
             if (stripos($e->getMessage(), 'email address already exists') !== false) {
                 $emailProvisioned = true;
-                $provisioningWarning = 'SMTP2GO could not create the sub-account because the Webmaster email address already exists. '
+                $provisioningWarning = 'SMTP2GO could not create the sub-account because its sub-account email address already exists. '
                     . 'Complete or correct the SMTP2GO setup manually before sending email. Step 8 cannot be rerun; '
                     . 'a knowledgeable administrator can recover the setup interactively on the SMTP2GO website.';
             } else {
