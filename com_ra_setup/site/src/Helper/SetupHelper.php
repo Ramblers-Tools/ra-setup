@@ -1,7 +1,5 @@
 <?php
 
-//defined('_JEXEC') or die;
-
 namespace Ramblers\Component\Ra_setup\Site\Helper;
 
 use Joomla\CMS\Factory;
@@ -9,6 +7,8 @@ use Joomla\Registry\Registry;
 use Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
 use Ramblers\Component\Ra_tools\Site\Helpers\ToolsHelper;
 use Ramblers\Component\Ra_tools\Site\Helpers\ToolsTable;
+
+defined('_JEXEC') or die;
 
 class SetupHelper {
 
@@ -24,31 +24,6 @@ class SetupHelper {
         $this->user = $this->app->getSession()->get('user');
     }
 
-    public static function getGreeting() {
-        return 'RA Setup initialised';
-    }
-
-    public function wizardCompleted() {
-        $sql = 'SELECT key_value FROM #__ra_control WHERE record_type=3';
-        return $this->toolsHelper->getValue($sql);
-    }
-
-    public function isWizardCompleted(): bool {
-        $dateCompleted = $this->wizardCompleted();
-
-        if ($dateCompleted === false) {
-            throw new \RuntimeException('Unable to determine whether setup has been completed.', 500);
-        }
-
-        return $dateCompleted !== null;
-    }
-
-    public function assertWizardNotCompleted(): void {
-        if ($this->isWizardCompleted()) {
-            throw new \RuntimeException('The setup wizard has already been completed.', 404);
-        }
-    }
-
     public function assertCanRunWizard(): void {
         $dateCompleted = $this->wizardCompleted();
 
@@ -62,6 +37,16 @@ class SetupHelper {
                             403
             );
         }
+    }
+
+    public function assertWizardNotCompleted(): void {
+        if ($this->isWizardCompleted()) {
+            throw new \RuntimeException('The setup wizard has already been completed.', 404);
+        }
+    }
+
+    public static function getGreeting() {
+        return 'RA Setup initialised';
     }
 
     public function getNearestOrganisations($code, int $limit = 5, $display = 'N') {
@@ -109,7 +94,6 @@ class SetupHelper {
         $sql .= 'WHERE code <> "' . $code . '" ';
         $sql .= 'ORDER BY distance ASC LIMIT 5';
         $rows = $this->toolsHelper->getRows($sql);
- //       echo $sql;
        if ($display == 'Y') {
             $objTable = new ToolsTable;
             $objTable->add_header("Num,Code, Name,Distance");
@@ -125,6 +109,16 @@ class SetupHelper {
             }
         }
         return $this->toolsHelper->getRows($sql);
+    }
+
+    public function isWizardCompleted(): bool {
+        $dateCompleted = $this->wizardCompleted();
+
+        if ($dateCompleted === false) {
+            throw new \RuntimeException('Unable to determine whether setup has been completed.', 500);
+        }
+
+        return $dateCompleted !== null;
     }
 
     /**
@@ -177,11 +171,57 @@ class SetupHelper {
             $db->setQuery($query);
             $db->execute();
 
+            // Read directly from the database rather than ComponentHelper's
+            // request cache, and do not report success unless every value was
+            // actually persisted.
+            $query = $db->getQuery(true)
+                    ->select($db->quoteName('params'))
+                    ->from($db->quoteName('#__extensions'))
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+                    ->where($db->quoteName('element') . ' = ' . $db->quote($component));
+            $storedJson = $db->setQuery($query)->loadResult();
+            $stored = new Registry(is_string($storedJson) ? $storedJson : '');
+
+            foreach ($params as $name => $value) {
+                if ((string) $stored->get($name, '') !== (string) $value) {
+                    return false;
+                }
+            }
+
             return true;
         } catch (\Throwable $e) {
             Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
             return false;
         }
+    }
+
+    function updateMaillists($group_code){
+        $group_name = $this->toolsHelper->lookupGroup($group_code);
+        $sql = 'SELECT * FROM #__ra_mail_lists WHERE state=1';
+        $rows = $this->toolsHelper->getRows($sql);
+        if (count($rows) == 0) {
+            $this->app->enqueueMessage('No mail lists found', 'warning');
+            return false;
+        }
+        $this->app->enqueueMessage('Updating ' . count($rows) . ' mail lists to group ' . $group_code, 'warning');  
+        foreach ($rows as $row) {
+            $this->app->enqueueMessage('Updating ' . $row->name . ' to group ' . $group_code, 'warning');  
+//            $this->app->enqueueMessage('primary ' . $row->group_primary .', ' . $row->group_code . ' ,name: ' . $row->name . ' sql: ' . $sql, 'warning');
+            $sql = 'UPDATE #__ra_mail_lists SET group_code = "' . $group_code . '"';
+            if (strtoupper($row->name) == "MEMBERS NEWSLETTER") {
+                $sql .= ', group_primary = "' . $this->db->quote($group_code) . '"';
+                $sql .= ', footer=' . $this->db->quote('You have received this message as a member of ' . $group_name . ' Ramblers');
+            } elseif (strtoupper($row->name) == "COMMITTEE MEMBERS") {
+                $sql .= ', footer=' . $this->db->quote('You have received this message as a Committee member of ' . $group_name . ' Ramblers');
+            }
+            $sql .= ' WHERE id = ' . $row->id;
+            if (JDEBUG) {
+                $this->app->enqueueMessage($sql, 'warning');
+            }
+            $this->toolsHelper->executeCommand($sql);
+        }
+
+        return true;
     }
 
     /**
@@ -233,6 +273,11 @@ class SetupHelper {
             Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
             return false;
         }
+    }
+
+    public function wizardCompleted() {
+        $sql = 'SELECT key_value FROM #__ra_control WHERE record_type=3';
+        return $this->toolsHelper->getValue($sql);
     }
 
 }

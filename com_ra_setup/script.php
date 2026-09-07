@@ -14,17 +14,10 @@ use Joomla\Database\DatabaseInterface;
 
 class Com_Ra_setupInstallerScript
 {
-    private $minimumJoomlaVersion = '4.0';
+    private $minimumJoomlaVersion = '5.0';
     private $minimumPHPVersion = '7.4.0';
     private $minimumToolsVersion = '4.0.9';
-
-    private function fail(string $message): bool
-    {
-        Factory::getApplication()->enqueueMessage($message, 'error');
-        Log::add($message, Log::ERROR, 'jerror');
-
-        return false;
-    }
+    private $minimumDeliveryVersion = '1.0.12-dev';
 
     function buildButton($url, $text, $newWindow = 0, $colour = '') {
         if ($colour == '') {
@@ -100,6 +93,14 @@ class Com_Ra_setupInstallerScript
         return $db->execute();
     }
 
+    private function fail(string $message): bool
+    {
+        Factory::getApplication()->enqueueMessage($message, 'error');
+        Log::add($message, Log::ERROR, 'jerror');
+
+        return false;
+    }
+
     private function getValue($sql) {
         $db = JFactory::getDbo();
         $query = $db->getQuery(true);
@@ -112,7 +113,7 @@ class Com_Ra_setupInstallerScript
      *
      * @return object|false Object containing component and db_version, or false if not found.
      */
-    public function getVersions($component = 'com_ra_setup')
+    public function getVersions($component = 'com_ra_setup', $extensionType = 'component')
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $query = $db->getQuery(true);
@@ -127,7 +128,7 @@ class Com_Ra_setupInstallerScript
                     . ' ON ' . $db->quoteName('s.extension_id') . ' = ' . $db->quoteName('e.extension_id')
                 )
                 ->where($db->quoteName('e.element') . ' = ' . $db->quote($component))
-                ->where($db->quoteName('e.type') . ' = ' . $db->quote('component'));
+                ->where($db->quoteName('e.type') . ' = ' . $db->quote($extensionType));
 
         $db->setQuery($query);
         $item = $db->loadObject();
@@ -151,21 +152,21 @@ class Com_Ra_setupInstallerScript
 
     public function install($parent): bool
     {
-        echo '<p>Installing RA Setup (com_ra_setup)</p>';
+        Factory::getApplication()->enqueueMessage('Installing RA Setup (com_ra_setup)', 'message');
 
         return true;
     }
 
     public function update($parent): bool
     {
-        echo '<p>Updating RA Setup (com_ra_setup)</p>';
+        Factory::getApplication()->enqueueMessage('Updating RA Setup (com_ra_setup)', 'message');
 
         return true;
     }
 
     public function uninstall($parent): bool
     {
-        echo '<p>Uninstalling RA Setup (com_ra_setup)</p>';
+        Factory::getApplication()->enqueueMessage('Uninstalling RA Setup (com_ra_setup)', 'message');
         $versions = $this->getVersions();
 
         if ($versions !== false) {
@@ -206,6 +207,28 @@ class Com_Ra_setupInstallerScript
                     . ' or later; found ' . $toolsVersions->component . '.');
         }
 
+        if (!ComponentHelper::isEnabled('com_ra_delivery', true)) {
+            return $this->fail('RA Setup requires RA Delivery (com_ra_delivery) to be installed and enabled.');
+        }
+
+        $deliveryVersions = $this->getVersions('pkg_ra_delivery', 'package');
+
+        if ($deliveryVersions === false) {
+            return $this->fail(
+                'Unable to determine the installed RA Delivery package version. '
+                    . 'Install pkg_ra_delivery version ' . $this->minimumDeliveryVersion . ' or later.'
+            );
+        }
+
+        $this->reportVersions('RA Delivery package', $deliveryVersions);
+
+        if (version_compare($deliveryVersions->component, $this->minimumDeliveryVersion, '<')) {
+            return $this->fail(
+                'RA Setup requires RA Delivery package version ' . $this->minimumDeliveryVersion
+                    . ' or later; found ' . $deliveryVersions->component . '.'
+            );
+        }
+
         if ($type === 'update') {
             $versions = $this->getVersions();
 
@@ -227,7 +250,7 @@ class Com_Ra_setupInstallerScript
 
         if ($versions === false) {
             Factory::getApplication()->enqueueMessage(
-                'RA Setup was installed, but its installed version could not be determined.',
+                'RA Setup (com_ra_setup) was installed, but its installed version could not be determined.',
                 'warning'
             );
         } else {
@@ -236,7 +259,7 @@ class Com_Ra_setupInstallerScript
 
         echo '<p><strong>Useful links</strong></p>';
         echo '<p><a href="index.php?option=com_ra_setup&amp;view=wizard">Open RA Setup</a></p>';
-        echo $this->buildButton('index.php?option=com_ra_tools&view=dashboard', 'Dashboard', 'granite') . '<br>';
+        echo $this->buildButton('index.php?option=com_ra_tools&view=dashboard', 'Dashboard', false,'granite') . '<br>';
         echo $this->buildButton('index.php?option=com_config&view=component&component=com_ra_setup','Configure RA Setup');
         return true;
     }

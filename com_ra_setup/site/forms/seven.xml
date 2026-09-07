@@ -2,12 +2,11 @@
 <form>
   <fieldset name="setup">
     <field
-      name="domain"
+      name="sub_account"
       type="text"
-      label="Email domain"
-      description="Maximum 12 characters"
+      label="Sub account"
+      description="Name for the new SMTP2GO sub-account"
       filter="string"
-      maxlength="12"
       required="true"
     />
     <field
@@ -20,5 +19,16 @@
       default="0"
       required="true"
     />
+    <field
+      name="sender_registration"
+      type="radio"
+      label="Sender verification"
+      default="domain"
+      required="true"
+    >
+      <option value="email">Register this address as a Verified Single sender email</option>
+      <option value="domain">Register this domain as a Verified sender domain</option>
+      <option value="both">Register both the email address and the domain</option>
+    </field>
   </fieldset>
 </form>

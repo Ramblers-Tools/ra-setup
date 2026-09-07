@@ -8,6 +8,7 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\DatabaseInterface;
 use Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
 
 class EightController extends BaseController
@@ -44,7 +45,25 @@ class EightController extends BaseController
             throw new \RuntimeException('Unable to load the final confirmation model.', 500);
         }
 
-        $db = Factory::getContainer()->get('DatabaseDriver');
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $emailProvisioned = false;
+        $provisioning = null;
+
+        try {
+            if (ComponentHelper::isEnabled('com_ra_mailman')) {
+                $provisioning = $model->provisionEmailConfiguration();
+                $emailProvisioned = true;
+            }
+        } catch (\Throwable $e) {
+            $this->app->enqueueMessage($e->getMessage(), 'error');
+            $this->setRedirect(
+                $model->isProvisioningGuardPresent()
+                    ? Uri::root()
+                    : 'index.php?option=com_ra_setup&view=eight'
+            );
+
+            return false;
+        }
 
         try {
             $db->transactionStart();
@@ -52,13 +71,33 @@ class EightController extends BaseController
             $db->transactionCommit();
         } catch (\Throwable $e) {
             $db->transactionRollback();
-            $this->app->enqueueMessage($e->getMessage(), 'error');
-            $this->setRedirect('index.php?option=com_ra_setup&view=eight');
+            $message = $e->getMessage();
+
+            if ($emailProvisioned) {
+                $message .= ' Step 8 cannot be rerun. A knowledgeable administrator can recover the setup '
+                    . 'interactively on the SMTP2GO website. If recovery is impractical, restore the cloned site '
+                    . 'and run the configuration again.';
+            }
+
+            $this->app->enqueueMessage($message, 'error');
+            $this->setRedirect($emailProvisioned ? Uri::root() : 'index.php?option=com_ra_setup&view=eight');
 
             return false;
         }
 
-        $this->app->enqueueMessage('Configuration completed', 'success');
+        $message = 'Configuration completed.';
+
+        if (is_array($provisioning)) {
+            $message .= ' SMTP2GO sub-account "' . $provisioning['subaccount_name']
+                . '" (SMTP2GO ID ' . $provisioning['subaccount_id']
+                . ') was provisioned using API-site record ' . (int) $provisioning['api_site_id'] . '.';
+        }
+
+        if (is_array($provisioning) && !empty($provisioning['instructions'])) {
+            $message .= ' ' . $provisioning['instructions'];
+        }
+
+        $this->app->enqueueMessage($message, 'success');
         $this->setRedirect(Uri::root());
 
         return true;

@@ -30,6 +30,14 @@ class TwoController extends BaseController
         return true;
     }
 
+        private function returnToForm(array $data): bool
+    {
+        $this->app->setUserState('com_ra_setup.two.data', $data);
+        $this->setRedirect('index.php?option=com_ra_setup&view=two');
+
+        return false;
+    }
+    
     public function update()
     {
         $this->checkToken();
@@ -132,11 +140,4 @@ class TwoController extends BaseController
         return true;
     }
 
-    private function returnToForm(array $data): bool
-    {
-        $this->app->setUserState('com_ra_setup.two.data', $data);
-        $this->setRedirect('index.php?option=com_ra_setup&view=two');
-
-        return false;
-    }
 }

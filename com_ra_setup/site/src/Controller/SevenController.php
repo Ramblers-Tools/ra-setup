@@ -6,6 +6,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\Database\DatabaseInterface;
 use Ramblers\Component\Ra_setup\Site\Helper\SetupHelper;
 
 class SevenController extends BaseController
@@ -59,32 +60,27 @@ class SevenController extends BaseController
             return $this->returnToForm($submittedData);
         }
 
-        $domain = trim((string) ($data['domain'] ?? ''));
-        $domain = function_exists('mb_substr')
-            ? mb_substr($domain, 0, 12, 'UTF-8')
-            : substr($domain, 0, 12);
-        $contactId = (int) ($data['contact_id'] ?? 0);
+        try {
+            $configuration = $model->validateConfiguration($data);
+        } catch (\InvalidArgumentException $e) {
+            $this->app->enqueueMessage($e->getMessage(), 'warning');
 
-        if ($domain === '' || $contactId < 1) {
-            if ($domain === '') {
-                $this->app->enqueueMessage('The email domain is required.', 'warning');
-            }
-
-            if ($contactId < 1) {
-                $this->app->enqueueMessage('Select a contact for delivery exceptions.', 'warning');
-            }
+            return $this->returnToForm($submittedData);
+        } catch (\Throwable $e) {
+            $this->app->enqueueMessage($e->getMessage(), 'error');
 
             return $this->returnToForm($submittedData);
         }
 
-        $db = Factory::getContainer()->get('DatabaseDriver');
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         try {
             $db->transactionStart();
 
             if (!$helper->updateComponentParams('com_ra_delivery', [
-                'subdomain' => $domain,
-                'contact_id' => $contactId,
+                'smtp2go_subaccount_name' => $configuration['sub_account'],
+                'notify_user' => $configuration['notify_user'],
+                'smtp2go_sender_registration' => $configuration['sender_registration'],
             ])) {
                 throw new \RuntimeException('Unable to update RA Delivery parameters.');
             }
@@ -98,12 +94,13 @@ class SevenController extends BaseController
         }
 
         $this->app->setUserState('com_ra_setup.seven.data', null);
-        $this->app->enqueueMessage('RA Delivery email configuration updated.', 'success');
-        $this->setRedirect(
-            $helper->isWizardCompleted()
-                ? 'index.php?option=com_ra_setup&view=seven'
-                : 'index.php?option=com_ra_setup&view=eight'
+        $this->app->enqueueMessage(
+            'SMTP2GO sub-account name "' . $configuration['sub_account']
+                . '" is available and the email configuration was saved.',
+            'success'
         );
+        $this->app->enqueueMessage($configuration['instructions'], 'message');
+        $this->setRedirect('index.php?option=com_ra_setup&view=eight');
 
         return true;
     }

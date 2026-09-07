@@ -88,7 +88,7 @@ class OneController extends BaseController {
                     ])) {
                 throw new \RuntimeException('Unable to update RA Header parameters.');
             }
-
+            $helper->updateMaillists($homeCode);
             $db->transactionCommit();
         } catch (\Throwable $e) {
             $db->transactionRollback();

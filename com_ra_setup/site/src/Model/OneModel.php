@@ -24,25 +24,6 @@ class OneModel extends FormModel
         );
     }
 
-    protected function loadFormData()
-    {
-        $app = Factory::getApplication();
-        $data = $app->getUserState('com_ra_setup.one.data', []);
-
-        if (empty($data)) {
-            $params = ComponentHelper::getParams('com_ra_tools');
-            $defaultCode = strtoupper(trim((string) $params->get('default_group', '')));
-            $data = $params->toArray();
-            $data['area_group'] = strlen($defaultCode) === 2 ? 'A' : 'G';
-            $data['area_code'] = strlen($defaultCode) === 2 ? $defaultCode : '';
-            $data['group_code'] = strlen($defaultCode) === 4 ? $defaultCode : '';
-            $data['site_name'] = $app->get('sitename', '');
-            $data['strapline'] = $this->getHeaderStrapline();
-        }
-
-        return $data;
-    }
-
     private function getHeaderStrapline(): string
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -63,4 +44,23 @@ class OneModel extends FormModel
 
         return trim((string) (new Registry($params))->get('website_subtitle', ''));
     }
+
+    protected function loadFormData()
+    {
+        $app = Factory::getApplication();
+        $data = $app->getUserState('com_ra_setup.one.data', []);
+
+        if (empty($data)) {
+            $params = ComponentHelper::getParams('com_ra_tools');
+            $defaultCode = strtoupper(trim((string) $params->get('default_group', '')));
+            $data = $params->toArray();
+            $data['area_group'] = strlen($defaultCode) === 2 ? 'A' : 'G';
+            $data['area_code'] = strlen($defaultCode) === 2 ? $defaultCode : '';
+            $data['group_code'] = strlen($defaultCode) === 4 ? $defaultCode : '';
+            $data['site_name'] = $app->get('sitename', '');
+            $data['strapline'] = $this->getHeaderStrapline();
+        }
+
+        return $data;
+    }    
 }

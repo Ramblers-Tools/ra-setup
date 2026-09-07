@@ -8,11 +8,19 @@
         / -->
         <field
             name="email_limit"
-            type="text"
+            type="list"
             filter="integer"
+            default="10000"
             label="Max emails per month"
-            description="Maximum number of emails that can be sent per month per Group"
-        /> 
+            description="Maximum number of emails that can be sent per billing cycle by the Group's SMTP2GO sub-account">
+            <option value="2000">2,000</option>
+            <option value="5000">5,000</option>
+            <option value="10000">10,000</option>
+            <option value="20000">20,000</option>
+            <option value="30000">30,000</option>
+            <option value="40000">40,000</option>
+            <option value="50000">50,000</option>
+        </field>
     </fieldset>
 
     <fieldset
