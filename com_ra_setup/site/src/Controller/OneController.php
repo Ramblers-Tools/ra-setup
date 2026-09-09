@@ -65,10 +65,11 @@ class OneController extends BaseController {
             return false;
         }
 
-        $groupList = implode(',', array_map(
-                        static fn($organisation) => $organisation->code,
-                        $nearest
-        ));
+        $groupCodes = array_merge(
+                [$homeCode],
+                array_map(static fn($organisation) => $organisation->code, $nearest)
+        );
+        $groupList = implode(',', array_values(array_unique($groupCodes)));
 
         $db = Factory::getContainer()->get('DatabaseDriver');
 

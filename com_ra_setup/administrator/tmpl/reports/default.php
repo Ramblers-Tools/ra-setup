@@ -1,6 +1,7 @@
 <?php
 /**
  * 14/08/26 CB Created
+ *  09/09/26 CB completeion report added
  */
 defined('_JEXEC') or die;
 
@@ -27,6 +28,8 @@ $breadcrumbs .= '>' . $toolsHelper->buildLink($back, 'RA Dashboard');
 echo $breadcrumbs;
 
 $reports = [
+    'Completion report' => 'administrator/index.php?option=com_ra_setup&task=reports.completion&type=group',
+    'Log report' => 'administrator/index.php?option=com_ra_setup&task=reports.showLog',
     'Walks Programme - Single Group' => 'administrator/index.php?option=com_ra_setup&task=reports.showEntries&type=group',
     'Walks Programme - Multiple Groups' => 'administrator/index.php?option=com_ra_setup&task=reports.showEntries&type=groups',
     'Walks Programme - By radius' => 'administrator/index.php?option=com_ra_setup&task=reports.showEntries&type=radius',

@@ -2,6 +2,7 @@
 
 /**
  * 14/08/26 CB created
+ * 09/09/26 CB completeion report added
  */
 
 namespace Ramblers\Component\Ra_setup\Administrator\Controller;
@@ -39,6 +40,17 @@ class ReportsController extends FormController {
         $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
         $wa->registerAndUseStyle('ramblers', 'com_ra_tools/ramblers.css');
     }
+    public function completion(){
+        ToolBarHelper::title('Completion Report');
+        $sql =  'SELECT key_value FROM #__ra_control WHERE record_type=3 ';
+        $date = $this->toolsHelper->getValue($sql);
+        if (is_null($date)) {
+           echo 'Wizard has not yet been completed<br>';
+        } else {
+            echo 'Wizard completed on ' . $date . '<br>';
+        }
+        echo $this->toolsHelper->backButton($this->back);           
+    }
 
     public function showEntries(){
         $type = $this->app->input->getWord('type', 'group');
@@ -59,7 +71,26 @@ class ReportsController extends FormController {
         $toolsTable->generate_table();
         echo $this->toolsHelper->backButton($this->back);       
     }  
-    
+ 
+    public function showLog(){
+        ToolBarHelper::title('Logfile records');
+
+        $sql = "SELECT date_format(log_date, '%a %e-%m-%y') as Date, ";
+        $sql .= "date_format(log_date, '%H:%i:%s.%u') as Time, ";
+        $sql .= "record_type, ";
+        $sql .= "ref, ";
+        $sql .= "message ";
+        $sql .= "FROM #__ra_logfile ";
+        $sql .= "WHERE sub_system ='RA Setup' ";
+        $sql .= "ORDER BY log_date DESC, record_type ";
+        if ($this->toolsHelper->showSql($sql)) {
+            echo "<h5>End of logfile records</h5>";
+        } else {
+            echo 'Error: ' . $this->toolsHelper->error . '<br>';
+        }
+        echo $this->toolsHelper->backButton($this->back);       
+    }
+
     public function showOther(){
         ToolBarHelper::title('Type = Other') ;
         $toolsTable = new ToolsTable();
@@ -80,4 +111,8 @@ class ReportsController extends FormController {
         echo $this->toolsHelper->backButton($this->back);       
     }
 
+    public function test() {   
+        $this->app->enqueueMessage('Test message', 'success');
+        $this->setRedirect(Route::_('index.php?option=com_ra_setup&view=reports', false));
+    }
 }

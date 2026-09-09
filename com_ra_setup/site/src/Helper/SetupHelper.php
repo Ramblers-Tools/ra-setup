@@ -49,12 +49,23 @@ class SetupHelper {
         return 'RA Setup initialised';
     }
 
+    public function logWizardStepStart(int $step): void {
+        $this->app->enqueueMessage('Step ' . $step . ' of the Wizard started', 'success');
+        echo '<h3>Step ' . $step . ' of the Wizard started</h3>';
+        $this->toolsHelper->createLog(
+                'RA Setup',
+                $step,
+                $this->app->isClient('administrator') ? 'Admin' : 'Site',
+                'Step ' . $step . ' of the Wizard started'
+        );
+    }
+
     public function getNearestOrganisations($code, int $limit = 5, $display = 'N') {
         // First get the latitude and longitude of the selected organisation
         if (strlen($code) == 4) {
             $type = 'group';
         } else {
-            $type .= 'area';
+            $type = 'area';
         }
         $sql = 'SELECT latitude, longitude FROM #__ra_' . $type . 's WHERE code = "' . $code . '"';
         $org = $this->toolsHelper->getItem($sql);
@@ -79,7 +90,9 @@ class SetupHelper {
         // Earth's radius in miles
         $earthRadius = 6371;
 
-        // Find the five nearest organisations
+        $limit = max(0, $limit);
+
+        // Find the requested number of nearest organisations.
         $sql = 'SELECT id, code, name, latitude, longitude,
       (
       ' . $earthRadius . ' * ACOS(
@@ -92,7 +105,7 @@ class SetupHelper {
       ) AS distance ';
         $sql .= 'FROM #__ra_' . $type . 's ';
         $sql .= 'WHERE code <> "' . $code . '" ';
-        $sql .= 'ORDER BY distance ASC LIMIT 5';
+        $sql .= 'ORDER BY distance ASC LIMIT ' . $limit;
         $rows = $this->toolsHelper->getRows($sql);
        if ($display == 'Y') {
             $objTable = new ToolsTable;
