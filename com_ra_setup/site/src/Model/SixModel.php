@@ -8,7 +8,6 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\FormModel;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
-use Joomla\CMS\Table\Category;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Component\Contact\Administrator\Table\ContactTable;
 use Ramblers\Component\Ra_tools\Site\Helpers\PersonHelper;
@@ -117,27 +116,24 @@ class SixModel extends FormModel {
     }
 
     public function persistPeople(array $people): array {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $homeGroup = trim((string) ComponentHelper::getParams('com_ra_tools')->get('default_group', ''));
 
         if (!preg_match('/^[A-Za-z0-9]{4}$/', $homeGroup)) {
             throw new \RuntimeException('RA Tools default_group must contain a valid four-character group code.');
         }
 
-        $categoryId = $this->getCommitteeCategoryId();
+        $categoryId = $this->personHelper->getOrCreateContactCategory('com_contact', 'Committee');
         $users = [];
         $messages = [];
         $warnings = [];
 
         foreach ($people as $key => $person) {
-            $existingUserId = (int) $this->toolsHelper->getValue(
-                    'SELECT id FROM #__users WHERE LOWER(email) = '
-                    . $db->quote(strtolower($person['email'])) . ' LIMIT 1'
-            );
+            $existingUser = $this->personHelper->findUserByEmail($person['email']);
+            $existingUserId = $existingUser ? (int) $existingUser->id : 0;
 
             $userId = $this->personHelper->saveUser($person['full_name'], $person['email']);
 
-            if (in_array('Webmaster', $person['roles'], true) && !$this->isEnabledSuperUser($userId)) {
+            if (in_array('Webmaster', $person['roles'], true) && !$this->personHelper->isEnabledSuperUser($userId)) {
                 $warnings[] = 'The Webmaster account for ' . $person['full_name']
                         . ' is not an enabled Joomla Super User. Please update it manually.';
             }
@@ -146,7 +142,7 @@ class SixModel extends FormModel {
                 $messages[] = 'User created: ' . $person['full_name'] . ' (' . $person['email'] . ').';
             }
 
-            $groupChange = $this->syncUserGroup($userId, 'Registered', true);
+            $groupChange = $this->personHelper->syncUserGroup($userId, 'Registered', true);
 
             if ($groupChange === null) {
                 throw new \RuntimeException('The Joomla Registered user group was not found.');
@@ -155,19 +151,14 @@ class SixModel extends FormModel {
             $this->addGroupChangeMessage($messages, $groupChange, $person['full_name'], 'Registered');
 
             $users[$key] = $userId;
-            $profileExists = (int) $this->toolsHelper->getValue(
-                    'SELECT COUNT(*) FROM #__ra_profiles WHERE id = ' . $userId
-            ) > 0;
+            $profileExists = $this->personHelper->profileExistsForUser($userId);
             $this->personHelper->saveProfile($userId, $person['full_name'], strtoupper($homeGroup));
 
             if (!$profileExists) {
                 $messages[] = 'Profile created for ' . $person['full_name'] . '.';
             }
 
-            $contactExists = (int) $this->toolsHelper->getValue(
-                    'SELECT COUNT(*) FROM #__contact_details WHERE user_id = ' . $userId
-                    . ' AND catid = ' . $categoryId
-            ) > 0;
+            $contactExists = $this->personHelper->contactExists($userId, $categoryId);
             $contactPerson = $person;
             $contactPerson['roles'] = $this->normaliseContactRoles($person['roles']);
             $this->personHelper->saveContact($userId, $contactPerson, $categoryId);
@@ -185,7 +176,7 @@ class SixModel extends FormModel {
             }
 
             foreach (array_unique($groups) as $groupTitle) {
-                $groupChange = $this->syncUserGroup($users[$key], $groupTitle, true);
+                $groupChange = $this->personHelper->syncUserGroup($users[$key], $groupTitle, true);
 
                 if ($groupChange === null) {
                     $warnings[] = 'User group ' . $groupTitle . ' was not found; ' . $person['full_name']
@@ -208,7 +199,7 @@ class SixModel extends FormModel {
 
                 $allowed = !empty($person['permissions'][$permission]);
 
-                $groupChange = $this->syncUserGroup($users[$key], $groupTitle, $allowed);
+                $groupChange = $this->personHelper->syncUserGroup($users[$key], $groupTitle, $allowed);
 
                 if ($groupChange === null) {
                     $warnings[] = 'User group ' . $groupTitle . ' was not found; access for '
@@ -218,7 +209,7 @@ class SixModel extends FormModel {
                 }
 
                 if ($allowed) {
-                    $toolsGroupChange = $this->syncUserGroup($users[$key], 'com_ra_tools', true);
+                    $toolsGroupChange = $this->personHelper->syncUserGroup($users[$key], 'com_ra_tools', true);
 
                     if ($toolsGroupChange === null) {
                         $warnings[] = 'User group com_ra_tools was not found; ' . $person['full_name']
@@ -245,26 +236,6 @@ class SixModel extends FormModel {
             'messages' => array_values(array_unique($messages)),
             'warnings' => array_values(array_unique($warnings)),
         ];
-    }
-
-    private function isEnabledSuperUser(int $userId): bool {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $db->getQuery(true)
-                ->select('COUNT(*)')
-                ->from($db->quoteName('#__users', 'u'))
-                ->innerJoin(
-                        $db->quoteName('#__user_usergroup_map', 'm')
-                        . ' ON ' . $db->quoteName('m.user_id') . ' = ' . $db->quoteName('u.id')
-                )
-                ->innerJoin(
-                        $db->quoteName('#__usergroups', 'g')
-                        . ' ON ' . $db->quoteName('g.id') . ' = ' . $db->quoteName('m.group_id')
-                )
-                ->where($db->quoteName('u.id') . ' = ' . $userId)
-                ->where($db->quoteName('u.block') . ' = 0')
-                ->where($db->quoteName('g.title') . ' = ' . $db->quote('Super Users'));
-
-        return (int) $db->setQuery($query)->loadResult() > 0;
     }
 
     private function normaliseContactRoles(array $roles): array {
@@ -338,46 +309,6 @@ class SixModel extends FormModel {
         ];
     }
 
-    private function syncUserGroup(int $userId, string $title, bool $enabled): ?string {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $groupId = (int) $this->toolsHelper->getValue(
-                'SELECT id FROM #__usergroups WHERE title = ' . $db->quote($title) . ' LIMIT 1'
-        );
-
-        if ($groupId < 1) {
-            return null;
-        }
-
-        $exists = (int) $this->toolsHelper->getValue(
-                'SELECT COUNT(*) FROM #__user_usergroup_map WHERE user_id = ' . $userId
-                . ' AND group_id = ' . $groupId
-        ) > 0;
-
-        if ($enabled) {
-            if ($exists) {
-                return 'unchanged';
-            }
-
-            if (!$this->personHelper->addUserToGroup($userId, $title)) {
-                return null;
-            }
-
-            return 'added';
-        }
-
-        if (!$exists) {
-            return 'unchanged';
-        }
-
-        $query = $db->getQuery(true)
-                ->delete($db->quoteName('#__user_usergroup_map'))
-                ->where($db->quoteName('user_id') . ' = ' . $userId)
-                ->where($db->quoteName('group_id') . ' = ' . $groupId);
-        $db->setQuery($query)->execute();
-
-        return 'removed';
-    }
-
     private function addGroupChangeMessage(
             array &$messages,
             string $change,
@@ -392,29 +323,10 @@ class SixModel extends FormModel {
     }
 
     private function unpublishMissingContacts(int $categoryId, array $users): array {
-        if (empty($users)) {
-            return [];
-        }
-
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $db->getQuery(true)
-                ->select([$db->quoteName('id'), $db->quoteName('name')])
-                ->from($db->quoteName('#__contact_details'))
-                ->where($db->quoteName('catid') . ' = ' . $categoryId)
-                ->where($db->quoteName('published') . ' = 1')
-                ->where($db->quoteName('user_id') . ' NOT IN ('
-                        . implode(', ', array_map('intval', array_values($users))) . ')');
-        $db->setQuery($query);
-        $contacts = $db->loadObjectList();
         $messages = [];
 
-        foreach ($contacts as $contact) {
-            $query = $db->getQuery(true)
-                    ->update($db->quoteName('#__contact_details'))
-                    ->set($db->quoteName('published') . ' = 0')
-                    ->where($db->quoteName('id') . ' = ' . (int) $contact->id);
-            $db->setQuery($query)->execute();
-            $messages[] = 'Contact unpublished: ' . (string) $contact->name . '.';
+        foreach ($this->personHelper->unpublishContacts($users, $categoryId) as $name) {
+            $messages[] = 'Contact unpublished: ' . $name . '.';
         }
 
         return $messages;
@@ -484,37 +396,6 @@ class SixModel extends FormModel {
         }
 
         return $permissions;
-    }
-
-    private function getCommitteeCategoryId(): int {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $categoryId = (int) $this->toolsHelper->getValue(
-                        'SELECT id FROM #__categories WHERE extension = "com_contact" '
-                        . 'AND LOWER(title) = "committee" ORDER BY id LIMIT 1'
-        );
-
-        if ($categoryId > 0) {
-            return $categoryId;
-        }
-
-        $category = new Category($db);
-        $category->setLocation(1, 'last-child');
-
-        if (!$category->bind([
-                    'parent_id' => 1,
-                    'extension' => 'com_contact',
-                    'title' => 'Committee',
-                    'alias' => 'committee',
-                    'published' => 1,
-                    'access' => 1,
-                    'language' => '*',
-                    'params' => '{}',
-                    'metadata' => '{}',
-                ]) || !$category->check() || !$category->store()) {
-            throw new \RuntimeException('Unable to create the Committee contact category: ' . $category->getError());
-        }
-
-        return (int) $category->id;
     }
 
     private function saveMailmanAccess(array $people, array $users): void {
