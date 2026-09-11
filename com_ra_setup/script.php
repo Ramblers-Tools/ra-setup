@@ -16,7 +16,7 @@ class Com_Ra_setupInstallerScript
 {
     private $minimumJoomlaVersion = '5.0';
     private $minimumPHPVersion = '7.4.0';
-    private $minimumToolsVersion = '4.0.9';
+    private $minimumToolsVersion = '4.0.13';
     private $minimumDeliveryVersion = '1.0.12-dev';
 
     function buildButton($url, $text, $newWindow = 0, $colour = '') {
